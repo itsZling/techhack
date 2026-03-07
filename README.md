@@ -1,4 +1,4 @@
 Installations:
   - pip install django-sass-processor
-  django-sass-processor
-  psycopg2-binary
+  - pip install psycopg2-binary
+  - pip install pillow  

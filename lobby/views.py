@@ -6,3 +6,6 @@ def index(request):
 
 def game(request):
     return render(request, 'lobby/game.html')
+
+def results(request):
+    return render(request, 'lobby/results.html')
