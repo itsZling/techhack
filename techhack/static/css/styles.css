@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=VT323&family=Stardew+Valley&display=swap');
 
+body {
+    background-color: #ffd3ac !important;
+}
+
 .alert.cozy-card {
     background-color: #ffd3ac !important;
     border: 4px solid #bf7858 !important;
