@@ -15,7 +15,11 @@
     align-items: center;
     justify-content: center;
     padding: 2rem 1rem;
-    background-color: #f3efe6;
+    background-color: #ffd3ac;
+    border: 6px solid #bf7858;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
   }
 
   .results-title {
@@ -37,15 +41,7 @@
 
   .leaderboard {
     width: 100%;
-    max-width: 480px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
-  }
-  .leaderboard {
-    width: 100%;
-    max-width: 480px;
+    max-width: 700px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -65,7 +61,6 @@
 
   .leaderboard::-webkit-scrollbar-thumb {
     background: #bf7858;
-    border-radius: 999px;
   }
 
   .player-card {
@@ -73,7 +68,6 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem 1.25rem;
-    border-radius: 14px;
     background: #ffd3ac;
     border: 3px solid #b8ada1;
     transition: transform 0.2s ease, border-color 0.4s ease;
@@ -157,7 +151,6 @@
     flex: 1;
     padding: 0.85rem 1rem;
     border: 3px solid #bf7858;
-    border-radius: 12px;
     font-weight: 600;
     font-size: 1.25rem;
     cursor: pointer;
@@ -175,48 +168,50 @@
   }
 </style>
 
-<div class="results-wrapper">
-  <h1 class="results-title">Results</h1>
-  <p class="results-subtitle">Round Complete!</p>
+<div class="container d-flex align-items-center justify-content-center py-4" style="min-height: calc(100vh - 160px);">
+  <div class="results-wrapper">
+    <h1 class="results-title">Results</h1>
+    <p class="results-subtitle">Round Complete!</p>
 
-  <div class="leaderboard">
+    <div class="leaderboard">
 
-    <div class="player-card first-place">
-      <div class="rank rank-1"><span class="rank-medal">1st</span></div>
-      <div class="player-name">Player 1</div>
-      <div class="player-score">25 <span>pts</span></div>
+      <div class="player-card first-place">
+        <div class="rank rank-1"><span class="rank-medal">1st</span></div>
+        <div class="player-name">Player 1</div>
+        <div class="player-score">25 <span>pts</span></div>
+      </div>
+
+      <div class="player-card">
+        <div class="rank rank-2"><span class="rank-medal">2nd</span></div>
+        <div class="player-name">Player 3</div>
+        <div class="player-score">15 <span>pts</span></div>
+      </div>
+
+      <div class="player-card">
+        <div class="rank rank-3"><span class="rank-medal">3rd</span></div>
+        <div class="player-name">Player 2</div>
+        <div class="player-score">6 <span>pts</span></div>
+      </div>
+
+      <!--
+        {% for player in players %}
+          <div class="player-card" style="animation-delay: calc({{ forloop.counter }} * 0.2s)">
+            ...
+          </div>
+        {% endfor %}
+      -->
+      <div class="player-card">
+        <div class="rank"><span class="rank-medal">4th</span></div>
+        <div class="player-name">Player 4</div>
+        <div class="player-score">2 <span>pts</span></div>
+      </div>
+
     </div>
 
-    <div class="player-card">
-      <div class="rank rank-2"><span class="rank-medal">2nd</span></div>
-      <div class="player-name">Player 3</div>
-      <div class="player-score">15 <span>pts</span></div>
+    <div class="action-buttons">
+      <a href="{% url 'lobby.index' lobby_id='general' %}" class="btn-action btn-lobby">↩ Return to Lobby</a>
+      <a href="/" class="btn-action btn-leave">Leave Lobby</a>
     </div>
-
-    <div class="player-card">
-      <div class="rank rank-3"><span class="rank-medal">3rd</span></div>
-      <div class="player-name">Player 2</div>
-      <div class="player-score">6 <span>pts</span></div>
-    </div>
-
-    <!--
-      {% for player in players %}
-        <div class="player-card" style="animation-delay: calc({{ forloop.counter }} * 0.2s)">
-          ...
-        </div>
-      {% endfor %}
-    -->
-    <div class="player-card">
-      <div class="rank"><span class="rank-medal">4th</span></div>
-      <div class="player-name">Player 4</div>
-      <div class="player-score">2 <span>pts</span></div>
-    </div>
-
-  </div>
-
-  <div class="action-buttons">
-    <a href="{% url 'lobby.index' %}" class="btn-action btn-lobby">↩ Return to Lobby</a>
-    <a href="/" class="btn-action btn-leave">Leave Lobby</a>
   </div>
 </div>
 
