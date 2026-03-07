@@ -13,7 +13,7 @@
                 <span class="text-muted fw-bold ms-2" style="font-family: 'VT323', monospace; font-size: 1.2rem; color: #8c6b4a !important;">{{ detail }}</span>
             </div>
             <div class="col-4 text-end">
-                <h4 class="text-danger fw-bold stardew-font" style="font-size: 3.5rem; text-shadow: 2px 2px 0px #ffd3ac;">00:25</h4>
+                <h4 class="text-danger fw-bold stardew-font" style="font-size: 3.5rem; text-shadow: 2px 2px 0px #ffd3ac;">25s</h4>
             </div>
         </div>
 
@@ -64,6 +64,10 @@
                                 🎵 {{ song_name }}
                             </h4>
                             <p class="stardew-font text-muted" style="font-size: 1.4rem;">by {{ song_artist }}</p>
+                        </div>
+                    {% elif error_message %}
+                        <div class="alert alert-danger stardew-font py-2" style="font-size: 1.2rem; border: 2px solid #dc3545;">
+                            ⚠️ {{ error_message }}
                         </div>
                     {% endif %}
 

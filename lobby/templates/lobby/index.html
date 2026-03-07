@@ -121,7 +121,11 @@
 
         if (data.type === 'redirect') {
             const baseUrl = "{% url 'game.index' %}";
-            window.location.href = baseUrl + "?mode=" + data.game_mode + "&rounds=" + data.rounds + "&detail=" + data.detail + "&lobby_id=" + lobbyId;
+            // Safely encode the parameters so symbols like '&' and '?' don't break the URL!
+            window.location.href = baseUrl + "?mode=" + encodeURIComponent(data.game_mode) + 
+                                   "&rounds=" + encodeURIComponent(data.rounds) + 
+                                   "&detail=" + encodeURIComponent(data.detail) + 
+                                   "&lobby_id=" + encodeURIComponent(lobbyId);
         }
 
         // If it's a chat message, update the chat log
