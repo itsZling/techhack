@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid vh-100 position-relative lobby-background">
+    <div id="player-list" class="position-absolute top-0 start-0 m-4 d-flex flex-column align-items-start" style="z-index: 1000; width: 250px;">
+        </div>
+    <div class="d-flex flex-column justify-content-center align-items-center vh-100">
+        <h1 class="stardew-font">Waiting for Players...</h1>
+        <div class="game-code-display p-3 mt-3">
+            CODE: <span id="room-code-text">ABCD</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const roomCode = "{{ room_code }}"
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/lobby/' + roomCode + '/');
+    socket.onmessage = funciton(e); {
+        const data = JSON.parse(e.data);
+
+        if (data.type === 'new_player'){
+            const playerList = document.getElementById('player-list');
+            const newTag = document.createElement('div');
+            newTag.className = "alert cozy-card d-flex align-items-center shadow-sm mb-2 w-100 p-2";
+            newTag.innerHTML = '<strong>${data.username}</strong>';
+            playerList.prepend(newTag)
+        }
+    };
+</script>
+{% endblock content }%
