@@ -8,7 +8,7 @@
 
 @keyframes bounceIn {
     0% { transform: translateX(-100%); opacity: 0; }
-    60% { tranform: translateX(10%); }
+    60% { transform: translateX(10%); }
     100% { transform: translateX(0); opacity: 1; }
 }
 

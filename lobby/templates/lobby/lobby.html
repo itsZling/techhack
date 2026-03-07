@@ -15,16 +15,16 @@
 <script>
     const roomCode = "{{ room_code }}"
     const socket = new WebSocket('ws://' + window.location.host + '/ws/lobby/' + roomCode + '/');
-    socket.onmessage = funciton(e); {
+    socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
 
         if (data.type === 'new_player'){
             const playerList = document.getElementById('player-list');
             const newTag = document.createElement('div');
             newTag.className = "alert cozy-card d-flex align-items-center shadow-sm mb-2 w-100 p-2";
-            newTag.innerHTML = '<strong>${data.username}</strong>';
+            newTag.innerHTML = `<strong>${data.username}</strong>`;
             playerList.prepend(newTag)
         }
     };
 </script>
-{% endblock content }%
+{% endblock content %}
