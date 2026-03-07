@@ -1,14 +1,68 @@
 {% extends 'base.html' %}
 {% block content %}
-
-
 <div class="p-3">
     <div class="container">
         <div class="row mt-3">
             <div class="col mx-auto text-center mb-3">
-                <h4>Lobby page</h4>
+                <h4>Lobby: {{ lobby_id }}</h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-8 mx-auto">
+                <textarea id="chat-log" class="form-control mb-2" rows="10" readonly></textarea>
+                <div class="input-group">
+                    <input id="chat-message-input" type="text" class="form-control" placeholder="Type a message...">
+                    <button id="chat-message-submit" class="btn btn-primary" type="button">Send</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // 1. Get the lobby ID passed from Django
+    const lobbyId = "{{ lobby_id }}";
+
+    // 2. Determine if we are on HTTP (local) or HTTPS (Railway production)
+    // Railway uses wss:// (WebSocket Secure), localhost uses ws://
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+
+    // 3. Connect to the routing.py URL
+    const chatSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + '/ws/lobby/' + lobbyId + '/'
+    );
+
+    // 4. Listen for messages FROM the server (the lobby_message function in consumers.py)
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const chatLog = document.querySelector('#chat-log');
+        chatLog.value += (data.user + ': ' + data.message + '\n');
+        chatLog.scrollTop = chatLog.scrollHeight; // Auto-scroll to bottom
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    // 5. Send messages TO the server (the receive function in consumers.py)
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+        
+        // Send as a JSON string matching what consumers.py expects
+        chatSocket.send(JSON.stringify({
+            'message': message
+        }));
+        
+        messageInputDom.value = ''; // Clear the input
+    };
+</script>
 {% endblock content %}
