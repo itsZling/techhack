@@ -1,27 +1,39 @@
 {% extends 'base.html' %}
 {% block content %}
 
-
 <div class="p-3">
     <div class="container">
         <div class="row mt-3">
             <div class="col mx-auto text-center mb-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h4 class="card-title">Are you a muscial meister?</h4>
+                <div class="card text-center shadow-sm">
+                    <div class="card-body p-5">
+                        <h4 class="card-title mb-4">Are you a musical meister?</h4>
+                        
                         {% if user.is_authenticated %}
-                        <p class="card-text">Play with friends!</p>
-                        <a name="" class="btn btn-primary" href="#" role="button">Make a Lobby</a>
-                        <a name="" class="btn btn-info" href="#" role="button">Join a Lobby</a>
+                            <p class="card-text text-muted mb-4">Play with friends!</p>
+                            
+                            <a class="btn btn-primary btn-lg mb-4" href="{% url 'home.create_lobby' %}" role="button">
+                                <i class="fas fa-plus me-2"></i> Make a Lobby
+                            </a>
+
+                            <hr style="width: 50%; margin: 0 auto 1.5rem auto;">
+                            
+                            <form action="{% url 'home.join_lobby' %}" method="POST" class="d-flex justify-content-center">
+                                {% csrf_token %}
+                                <div class="input-group" style="max-width: 300px;">
+                                    <input type="text" name="lobby_code" class="form-control" placeholder="Enter Code (e.g. AB12XY)" required>
+                                    <button class="btn btn-info text-white" type="submit">Join</button>
+                                </div>
+                            </form>
+
                         {% else %}
-                        <p class="card-text">Login before you play!</p>
-                        <a name="" class="btn btn-dark" href="{% url "account.login" %}" role="button">Login</a>
-                        <a name="" class="btn btn-secondary" href="{% url "account.signup" %}" role="button">Sign up</a>
+                            <p class="card-text text-muted mb-4">Login before you play!</p>
+                            <a class="btn btn-dark" href="{% url 'account.login' %}" role="button">Login</a>
+                            <a class="btn btn-secondary" href="{% url 'account.signup' %}" role="button">Sign up</a>
                         {% endif %}
 
                     </div>
                 </div>
-                
             </div>
         </div>
     </div>
