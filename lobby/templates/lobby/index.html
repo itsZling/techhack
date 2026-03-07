@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<div class="container vh-100 d-flex align-items-center justify-content-center">
+<div class="container d-flex align-items-center justify-content-center py-4" style="min-height: calc(100vh - 160px);">
     <div class="lobby-main-panel p-4 shadow-lg w-100" style="max-width: 900px;">
         <h2 class="stardew-font text-center mb-4" style="color: #634d31;">Lobby</h2>
         <div class="row">
@@ -32,7 +32,7 @@
                 </div>
                 
                 <div class="d-flex gap-2">
-                    <button class="btn-pixel-action btn-start" href="{% url "game.index" %}">START</button>
+                    <button class="btn-pixel-action btn-start" style="display: none;">START</button>
                     <button class="btn-pixel-action btn-leave">QUIT</button>
                 </div>
             </div>
@@ -47,9 +47,10 @@
                     </div>
                     <select class="form-select custom-pixel-input" id="genre-select">
                         <option value="none">Pick a genre...</option>
+                        <option value="alt">Alternative</option>
+                        <option value="emo">emo</option>
                         <option value="pop">Pop</option>
-                        <option value="folk">Folk</option>
-                        <option value="rock">Rock</option>
+                        <option value="vocaloid">Vocaloid</option>
                     </select>
                 </div>
                 
@@ -60,10 +61,10 @@
                     </div>
                     <select class="form-select custom-pixel-input" id="mode-artist">
                         <option value="none">Pick an artist...</option>
-                        <option value="taylor_swift">Taylor Swift</option>
-                        <option value="hozier">Hozier</option>
+                        <option value="bear_ghost">Bear Ghost</option>
                         <option value="bruno_mars">Bruno Mars</option>
                         <option value="set_it_off">Set It Off</option>
+                        <option value="tyler_the_creator">Tyler the Creator</option>
                     </select>
                 </div>
                 
@@ -102,7 +103,7 @@
 
     // --- WEBSOCKET LOGIC ---
     const lobbyId = "{{ lobby_id }}";
-    const currentUsername = "{{ user.username }}"; // Get the logged-in user's name
+    const currentUsername = "{{ user.username }}"; 
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     
     const chatSocket = new WebSocket(
@@ -113,11 +114,30 @@
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
 
+        if (data.type === 'lobby_error') {
+            alert("⚠️ " + data.message);
+            return; // Stop the code here
+        }
+
+        if (data.type === 'redirect') {
+            const baseUrl = "{% url 'game.index' %}";
+            // Safely encode the parameters so symbols like '&' and '?' don't break the URL!
+            window.location.href = baseUrl + "?mode=" + encodeURIComponent(data.game_mode) + 
+                                   "&rounds=" + encodeURIComponent(data.rounds) + 
+                                   "&detail=" + encodeURIComponent(data.detail) + 
+                                   "&lobby_id=" + encodeURIComponent(lobbyId);
+        }
+
         // If it's a chat message, update the chat log
         if (data.message) {
             const chatLog = document.querySelector('#chat-log');
             chatLog.value += (data.user + ': ' + data.message + '\n');
             chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        if (data.type === 'redirect') {
+            const baseUrl = "{% url 'game.index' %}";
+            window.location.href = baseUrl + "?mode=" + data.game_mode + "&rounds=" + data.rounds + "&detail=" + data.detail + "&lobby_id=" + lobbyId;
         }
 
 
@@ -152,9 +172,10 @@
             });
         }
 
+        // Handle the redirect command from the server
         if (data.type === 'redirect') {
             const baseUrl = "{% url 'game.index' %}";
-            // Build a URL with the settings attached (e.g., /lobby/game/?mode=genre&rounds=5)
+            // Build a URL with the settings attached
             window.location.href = baseUrl + "?mode=" + data.game_mode + "&rounds=" + data.rounds + "&detail=" + data.detail + "&lobby_id=" + lobbyId;
         }
     };
@@ -187,18 +208,20 @@
         const rounds = roundsInput.value;
         let detail = "";
 
-        if (selectedMode === 'genre') detail = document.getElementById('genre-select').value;
-        else if (selectedMode === 'artist') detail = document.getElementById('mode-artist').value;
-        else detail = document.getElementById('spotify-input').value;
+        if (selectedMode === 'genre') {
+            detail = document.getElementById('genre-select').value;
+        } else if (selectedMode === 'artist') {
+            detail = document.getElementById('mode-artist').value;
+        } else {
+            detail = document.getElementById('spotify-input').value;
+        }
 
-        // Send config to consumers.py
         chatSocket.send(JSON.stringify({
             'type': 'start_game',
             'game_mode': selectedMode,
             'rounds': rounds,
             'detail': detail
         }));
-        
     });
 </script>
 {% endblock content %}

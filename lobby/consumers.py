@@ -1,6 +1,13 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import sync_to_async
+from .spotify_utils import get_random_song_from_playlist
 
+<<<<<<< HEAD
+=======
+connected_users = {}
+
+>>>>>>> 653854f6815c5cce67138a4ba82892fb67ac5bce
 class LobbyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.lobby_name = self.scope['url_route']['kwargs']['lobby_id']
@@ -40,7 +47,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         
-        # 1. ONLY do this if the user sent a chat message
+        # 1. Handle Chat Messages
         if 'message' in data:
             await self.channel_layer.group_send(
                 self.lobby_group_name,
@@ -51,15 +58,32 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 }
             )
             
-        # 2. ONLY do this if the host clicked START
+        # 2. Handle Game Start Config
         elif data.get('type') == 'start_game':
+            game_mode = data.get('game_mode')
+            detail = data.get('detail')
+
+            # VALIDATE THE SPOTIFY LINK FIRST
+            if game_mode == 'spotify':
+                # Run the Spotify check without freezing the server
+                song_data = await sync_to_async(get_random_song_from_playlist)(detail)
+                
+                if song_data is None:
+                    # Send an error back ONLY to the person who clicked start
+                    await self.send(text_data=json.dumps({
+                        'type': 'lobby_error',
+                        'message': 'Invalid link or no 30-second previews available on this playlist!'
+                    }))
+                    return # Stop here, do not redirect!
+
+            # IF VALID (OR NOT SPOTIFY MODE), REDIRECT EVERYONE
             await self.channel_layer.group_send(
                 self.lobby_group_name,
                 {
                     'type': 'game_start_redirect',
-                    'game_mode': data['game_mode'],
-                    'rounds': data['rounds'],
-                    'detail': data['detail']
+                    'game_mode': game_mode,
+                    'rounds': data.get('rounds'),
+                    'detail': detail
                 }
             )
 
