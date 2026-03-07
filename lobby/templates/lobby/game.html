@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="p-4" style="position: relative; min-height: 100vh;">
+    <div class="container">
+
+        <!-- Header: Rounds and Timer -->
+        <div class="row align-items-center mb-4">
+            <div class="col-4"></div>
+            <div class="col-4 text-center">
+                <h4 class="fw-bold">Round 14/15</h4>
+            </div>
+            <div class="col-4 text-end">
+                <h4 class="text-danger fw-bold">00:25</h4>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="row justify-content-center">
+            
+            <!-- Floating Leaderboard (Left Side) -->
+            <!-- Using d-none d-xl-block to keep it clean on small screens -->
+            <div class="col-lg-3 position-absolute start-0 ms-4" style="z-index: 10;">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white text-center py-2">
+                        <h6 class="mb-0">Leaderboard</h6>
+                    </div>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between p-2">
+                            <span><small class="text-warning fw-bold">1st</small> micahG</span>
+                            <span class="badge bg-dark rounded-pill">1,250</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between p-2">
+                            <span><small class="text-muted fw-bold">2nd</small> bulba_dev</span>
+                            <span class="badge bg-secondary rounded-pill">980</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between p-2">
+                            <span><small class="text-muted fw-bold">3rd</small> python_pro</span>
+                            <span class="badge bg-secondary rounded-pill">450</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Centered Image and Input -->
+            <div class="col-md-8 col-lg-6 text-center">
+                <!-- Album Art -->
+                <div class="mb-4">
+                    <img src="{% static 'img/sample.jpg' %}" 
+                         class="img-fluid rounded shadow-lg" 
+                         alt="Guess this song" 
+                         style="max-height: 400px;">
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Guessing Interface -->
+                <div class="mt-3">
+                    <p class="fw-bold h5 mb-3">Guess the song!</p>
+                    <div class="input-group shadow-sm">
+                        <input type="text" id="songGuess" class="form-control py-2" placeholder="Start typing the song name...">
+                        <button class="btn btn-primary px-4" type="button">Submit</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}
