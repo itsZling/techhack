@@ -103,16 +103,16 @@ WSGI_APPLICATION = 'techhack.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 # techhack/settings.py
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'techhackdb',
-        'USER': 'micahG',
-        'PASSWORD': 'hackitup',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'techhackdb',
+#         'USER': 'micahG',
+#         'PASSWORD': 'hackitup',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 # DATABASES = {
 #     'default': {

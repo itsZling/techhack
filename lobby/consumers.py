@@ -1,15 +1,32 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+<<<<<<< HEAD
 from channels.db import database_sync_to_async
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_code']
-        self.room_group_name = f'lobby_{self.room_name}'
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        self.lobby_name = self.scope['url_route']['kwargs']['lobby_id']
+        self.lobby_group_name = f'lobby_{self.lobby_name}'
+
+        # Join the lobby group
+        await self.channel_layer.group_add(self.lobby_group_name, self.channel_name)
         await self.accept()
-        await self.channel_layer.group_send(self.room_group_name, {'type': 'player_joined', 'username': 'New Player',})
-    
-    async def player_joined(self, event):
-        await self.send(text_data=json.dumps({'type': 'new_player', 'username': event['username']}))
-        
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        # Broadcast the message/action to everyone in the lobby
+        await self.channel_layer.group_send(
+            self.lobby_group_name,
+            {
+                'type': 'lobby_message',
+                'message': data['message'],
+                'user': self.scope['user'].username
+            }
+        )
+
+    async def lobby_message(self, event):
+        # This sends the data to the actual WebSocket
+        await self.send(text_data=json.dumps({
+            'message': event['message'],
+            'user': event['user']
+        }))
