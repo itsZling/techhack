@@ -6,7 +6,22 @@
     <div class="container">
         <div class="row mt-3">
             <div class="col mx-auto text-center mb-3">
-                <h4>Homepage</h4>
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="card-title">Are you a muscial meister?</h4>
+                        {% if user.is_authenicated %}
+                        <p class="card-text">Play with friends!</p>
+                        <a name="" class="btn btn-primary" href="#" role="button">Make a Lobby</a>
+                        <a name="" class="btn btn-info" href="#" role="button">Join a Lobby</a>
+                        {% else %}
+                        <p class="card-text">Login before you play!</p>
+                        <a name="" class="btn btn-dark" href="{% url "account.login" %}" role="button">Login</a>
+                        <a name="" class="btn btn-secondary" href="{% url "account.signup" %}" role="button">Sign up</a>
+                        {% endif %}
+
+                    </div>
+                </div>
+                
             </div>
         </div>
     </div>
