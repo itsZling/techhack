@@ -9,3 +9,6 @@ def game(request):
 
 def results(request):
     return render(request, 'lobby/results.html')
+
+def lobby_view(request, room_code):
+    return render(request, 'lobby/lobby.html', {'room_code': room_code})

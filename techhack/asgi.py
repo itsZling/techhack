@@ -22,7 +22,7 @@ application = ProtocolTypeRouter({
     # Handle WebSocket connections
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            game_app.routing.websocket_urlpatterns
+            game_app.routing.websocket_urlpatterns + lobby.routing.websocket_urlpatterns
         )
     ),
 })

@@ -1,16 +1,24 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container-fluid vh-100 position-relative lobby-background">
-    <div id="player-list" class="position-absolute top-0 start-0 m-4 d-flex flex-column align-items-start" style="z-index: 1000; width: 250px;">
-        </div>
-    <div class="d-flex flex-column justify-content-center align-items-center vh-100">
-        <h1 class="stardew-font">Waiting for Players...</h1>
-        <div class="game-code-display p-3 mt-3">
-            CODE: <span id="room-code-text">ABCD</span>
-        </div>
-    </div>
-</div>
+<!DOCTYPE html>
+    <html>
+        <head>
+            <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        </head>
+        <body>
+            <div class="container-fluid vh-100 position-relative lobby-background">
+                <div id="player-list" class="position-absolute top-0 start-0 m-4 d-flex flex-column align-items-start" style="z-index: 1000; width: 250px;">
+                    </div>
+                <div class="d-flex flex-column justify-content-center align-items-center vh-100">
+                    <h1 class="stardew-font">Waiting for Players...</h1>
+                    <div class="game-code-display p-3 mt-3">
+                        CODE: <span id="room-code-text">ABCD</span>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </html>
 
 <script>
     const roomCode = "{{ room_code }}"
