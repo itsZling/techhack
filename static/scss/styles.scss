@@ -1,0 +1,31 @@
+@import "../bootstrap/scss/functions";
+
+// COLOR PALETTE (Colors From Stardew Valley)
+
+    // Font Colors (Some are system colors)
+    $brown: #56160C;
+    $white: white;
+    $black: black;
+    $skyBlue: skyblue;
+    $purple: #6E2BFF;
+    $orange: orangered;
+    $green: limegreen;
+    $cyan: cyan;
+    $gray: #3C3C3C;
+    $joja-blue: #34327A;
+
+    // Miscellaneous
+    $bundle-orange: orange;
+    $bundle-pink: deeppink;
+    $torch-glow: palegoldenrod;
+    $watering-can-bottomless: blueviolet;
+    $watering-can-fillbar: dodgerblue;
+
+
+
+
+@import "../bootstrap/scss/variables";
+@import "../bootstrap/scss/maps";
+@import "../bootstrap/scss/mixins";
+@import "../bootstrap/scss/root";
+@import "../bootstrap/scss/badge";
