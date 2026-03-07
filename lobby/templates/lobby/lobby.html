@@ -26,29 +26,36 @@
             <div class="col-md-7 ps-4">
                 <h3 class="stardew-font border-bottom border-dark pb-1 mb-4">Game Mode</h3>
                 <div class="mb-3">
-                    <div class="mb-3 d-flex align-items-center gap-2">
-                        <input type="radio" name="game-mode" value="genre" id="mode-genre" checked class="pixel-radio">
-                        <label for="mode-genre" class="stardew-font d-block mb-1">Genre</label>
+                    <div class="mb-3 custom-dropdown-container" id="genre-dropdown">
+                        <div class=mb-3 d-flex align-items-center gap-2>
+                            <input type="radio" name="game-mode" value="genre" id="mode-genre" checked class="pixel-radio">
+                            <label for="mode-genre" class="stardew-font d-block mb-1">Genre</label>
+                        </div>
+                        <div class="custom-pixel-dropdown-trigger stardew-font" id="genre-trigger">
+                            Pick a genre...
+                        </div>
+                        <ul class="custom-pixel-dropdown-list stardew-font" id="genre-list">
+                            <li data-value="pop">Pop</li>
+                            <li data-value="folk">Folk</li>
+                            <li data-value="rock">Rock</li>
+                        </ul>
                     </div>
-                    <select class="form-select custom-pixel-input" id="genre-select">
-                        <option value="genre">Pick a genre...</option>
-                        <option value="genre">Pop</option>
-                        <option value="artist">Folk</option>
-                        <option value="spotify">Rock</option>
-                    </select>
                 </div>
                 <div class="mb-3">
-                    <div class="mt-3 mb-3 d-flex align-items-center gap-2">
-                        <input type="radio" name="game-mode" value="artist" id="artist-input" class="pixel-radio">
-                        <label for="mode-artist" class="stardew-font d-block mb-1">Artist</label>
+                    <div class="mb-3 custom-dropdown-container" id="artist-dropdown">
+                        <div class=mb-3 d-flex align-items-center gap-2>
+                            <input type="radio" name="game-mode" value="artist" id="artist-input" class="pixel-radio">
+                            <label for="artist-input" class="stardew-font d-block mb-1">Artist</label>
+                        </div>
+                        <div class="custom-pixel-dropdown-trigger stardew-font" id="artist-trigger">
+                            Pick an artist...
+                        </div>
+                        <ul class="custom-pixel-dropdown-list stardew-font" id="artist-list">
+                            <li data-value="Bruno">Bruno Mars</li>
+                            <li data-value="Billie">Billie Eilish</li>
+                            <li data-value="Set">Set It Off</li>
+                        </ul>
                     </div>
-                    <select class="form-select custom-pixel-input">
-                        <option>Pick an artist...</option>
-                        <option>Taylor Swift</option>
-                        <option>Hozier</option>
-                        <option>Bruno Mars</option>
-                        <option>Set It Off</option>
-                    </select>
                 </div>
                 <div class="mb-3">
                     <div class="mt-3 mb-3 d-flex align-items-center gap-2" mb-1>
@@ -67,6 +74,48 @@
 </div>
        
 <script>
+    const genreTrigger = document.getElementById('genre-trigger');
+    const genreList = document.getElementById('genre-list');
+    const artistTrigger = document.getElementById('artist-trigger');
+    const artistList = document.getElementById('artist-list');
+
+    genreTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        genreList.classList.toggle('show');
+        artistList.classList.remove('show');
+
+    });
+
+    artistTrigger.addEventListener('click', (e) =>{
+        e.stopPropagation();
+        artistList.classList.toggle('show');
+        genreList.classList.remove('show');
+    });
+    
+    genreList.querySelectorAll('li').forEach(item => {
+        item.addEventListener('click', (e) => {
+            genreTrigger.innerText = e.target.innerText;
+            genreList.classList.remove('show');
+        });
+    });
+
+    artistList.querySelectorAll('li').forEach(item => {
+        item.addEventListener('click', (e) => {
+            artistTrigger.innerText = e.target.innerText;
+            artistList.classList.remove('show');
+        });
+    });
+
+    window.addEventListener('click', (e) => {
+        if (!genreTrigger.contains(e.target) && !genreList.contains(e.target)) {
+            genreList.classList.remove('show');
+         } 
+        
+         if (!artistTrigger.contains(e.target) && !artistList.contains(e.target)) {
+            artistList.classList.remove('show');
+        }
+    });
+
     const roundBtns =document.querySelectorAll('.btn-pixel-small');
     const roundsInput = document.getElementById('selected-rounds');
     roundBtns.forEach(btn => {
@@ -106,12 +155,26 @@
             newTag.className = "alert cozy-card d-flex justify-content-between align-items-center shadow-sm mb-2 w-100 p-2";
             let badgeHTML = '';
             
-            if (isHost) {
+             if (isHost) {
                 badgeHTML = `<span class="badge rounded-pill bg-dark stardew-font" style="font-size: 0.7rem; display: inline-block !important;">HOST</span>`;
             } else {
                 const startBtn = document.querySelector('.btn-start');
                 if(startBtn) startBtn.style.display = 'none';
+                const roundBtns = doument.querySelectorAll('.btn-pixel-small');
+                roundBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('disabled-look');
+                });
+
+                const modeSelections = document.querySelectorAll('.pixel-radio, label.stardew-font');
+                modeSelections.forEach(el => {
+                    el.classList.add('host-only-content');
+                });
+
+                genreTrigger.style.pointerEvents = 'none';
+                artistTrigger.style.pointerEvents = 'none';
             }
+
             newTag.innerHTML = `<strong>${data.username}</strong> ${badgeHTML}`;
             playerList.append(newTag);
         }
