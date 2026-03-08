@@ -13,7 +13,7 @@
                 <span class="text-muted fw-bold ms-2" style="font-family: 'VT323', monospace; font-size: 1.2rem; color: #8c6b4a !important;">{{ detail }}</span>
             </div>
             <div class="col-4 text-end">
-                <h4 class="text-danger fw-bold stardew-font" style="font-size: 3.5rem; text-shadow: 2px 2px 0px #ffd3ac;">00:25</h4>
+                <h4 class="text-danger fw-bold stardew-font" id="timer-display" style="font-size: 3.5rem; text-shadow: 2px 2px 0px #ffd3ac;">00:25</h4>
             </div>
         </div>
 
@@ -83,27 +83,108 @@
 
 <script>
     let player;
+    let timerInterval;
+    let timeLeft = 25;
+    let currentPlayers = [];
+    const lobbyId = "{{ lobby_id }}";
+    const currentUsername = "{{ user.username }}";
     const videoId = "{{ video_id }}"; // Fetched from your views.py
 
-    // This function creates an <iframe> (and YouTube player)
-    // after the API code downloads.
-    function onYouTubeIframeAPIReady() {
-        if (videoId) {
-            player = new YT.Player('player', {
-                height: '0',
-                width: '0',
-                videoId: videoId,
-                playerVars: {
-                    'autoplay': 1,
-                    'controls': 0,
-                    'disablekb': 1,
-                    'modestbranding': 1
-                },
-                events: {
-                    'onReady': onPlayerReady
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const gameSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/lobby/' + lobbyId + '/');
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 25;
+        document.getElementById('timer-display').innerText = "00:" + timeLeft;
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer-display').innerText = "00:" + (timeLeft < 10 ? "0" + timeLeft : timeLeft);
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                // ONLY THE HOST triggers the next round to keep everyone synced
+                if (currentPlayers.length > 0 && currentUsername === currentPlayers[0]) {
+                     gameSocket.send(JSON.stringify({'type': 'next_round'}));
                 }
-            });
+            }
+        }, 1000);
+    }
+
+    const guessInput = document.getElementById('songGuess');
+    const submitBtn = document.querySelector('button.px-4'); // Your Submit button
+
+    function sendGuess() {
+        const guess = guessInput.value;
+        if (guess) {
+            gameSocket.send(JSON.stringify({
+                'type': 'submit_guess',
+                'guess': guess
+            }));
+            guessInput.value = ''; // Clear input
         }
+    }
+
+    submitBtn.onclick = sendGuess;
+    guessInput.onkeyup = (e) => { if (e.key === 'Enter') sendGuess(); };
+
+    gameSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        if (data.type === 'points_update') {
+            // Update the UI: Leaderboard
+            const leaderboardList = document.querySelector('.list-group');
+            leaderboardList.innerHTML = '';
+
+            const sortedEntries = Object.entries(data.leaderboard).sort((a, b) => b[1] - a[1]);
+
+            currentPlayers = sortedEntries.map(entry => entry[0]);
+
+            sortedEntries.forEach(([user, score], index) => {
+                const rankText = (index === 0) ? "1st" : (index === 1) ? "2nd" : (index === 2) ? "3rd" : (index + 1) + "th";
+                const badgeColor = (index === 0) ? "#bf7858" : "#634d31";
+                
+                leaderboardList.innerHTML += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2">
+                        <span><span style="color: ${badgeColor};">${rankText}</span> ${user}</span>
+                        <span class="badge bg-dark rounded-pill">${score}</span>
+                    </li>`;
+            });
+
+            if (data.user === currentUsername) {
+                const guessInput = document.getElementById('songGuess');
+                guessInput.placeholder = "Correct! +" + data.points + " pts";
+                guessInput.disabled = true;
+            }
+        }
+
+        if (data.type === 'load_new_round') {
+            // Update UI with new song data without refreshing the page!
+            guessInput.disabled = false;
+            guessInput.placeholder = "Start typing...";
+            document.getElementById('round-text').innerText = "Round " + data.round_number + " / {{ rounds }}";
+            document.getElementById('album-art').src = data.song_data.cover_art;
+            
+            // Reload YouTube Player
+            if (player) {
+                player.loadVideoById(data.song_data.video_id);
+                player.playVideo();
+            }
+            startTimer();
+        }
+        
+        if (data.type === 'game_over') {
+            window.location.href = "{% url 'results' %}";
+        }
+    };
+
+    // YouTube API Ready
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '0', width: '0', videoId: "{{ video_id }}",
+            events: { 'onReady': (e) => { e.target.playVideo(); startTimer(); } }
+        });
     }
 
     function onPlayerReady(event) {
