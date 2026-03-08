@@ -190,19 +190,23 @@
     };
 
     // 3. Sending Game Start Action
-    document.querySelector('.btn-start').addEventListener('click', function(){
+// 3. Sending Game Start Action
+    document.querySelector('.btn-start').addEventListener('click', function(e){
+        // 1. Prevent double-clicking by locking the button immediately
+        const startBtn = e.target;
+        startBtn.disabled = true;
+        startBtn.innerText = "LOADING SONG...";
+        startBtn.classList.replace('btn-dark', 'btn-secondary'); // Make it look greyed out
+
         const selectedMode = document.querySelector('input[name="game-mode"]:checked').value;
         const rounds = roundsInput.value;
         let detail = "";
 
-        if (selectedMode === 'genre') {
-            detail = document.getElementById('genre-select').value;
-        } else if (selectedMode === 'artist') {
-            detail = document.getElementById('mode-artist').value;
-        } else {
-            detail = document.getElementById('spotify-input').value;
-        }
+        if (selectedMode === 'genre') detail = document.getElementById('genre-select').value;
+        else if (selectedMode === 'artist') detail = document.getElementById('mode-artist').value;
+        else detail = document.getElementById('spotify-input').value;
 
+        // 2. Send config to consumers.py
         chatSocket.send(JSON.stringify({
             'type': 'start_game',
             'game_mode': selectedMode,
