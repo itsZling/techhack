@@ -345,13 +345,8 @@ h3.stardew-font {
     text-align: center;
 }
 
-<<<<<<< HEAD
-  .btn-lobby:hover { background: #7bae7f; color: white; }
-  .btn-leave:hover { background: #dca1a1; color: white; }
-=======
 .btn-lobby:hover { background: #7bae7f; color: white; }
 .btn-leave:hover { background: #dca1a1; color: white; }
->>>>>>> f32d9f4242c14e04baf8b61f857111eadef98c52
 
 .song-reveal-hidden {
     filter: blur(8px);
