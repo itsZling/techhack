@@ -347,3 +347,15 @@ h3.stardew-font {
 
   .btn-lobby:hover { background: #7bae7f; color: white; }
   .btn-leave:hover { background: #dca1a1; color: white; }
+
+  .song-reveal-hidden {
+    filter: blur(8px);
+    opacity: 0.3;
+    pointer-events: none;
+    transition: filter 0.5s ease, opacity 0.5s ease;
+}
+
+.song-reveal-visible {
+    filter: blur(0);
+    opacity: 1;
+}

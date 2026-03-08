@@ -44,9 +44,11 @@
                     </div>
 
                     <div class="mb-3">
-                        <h4 id="song-name-display" class="stardew-font mb-0" style="color: #634d31; font-size: 1.8rem;">
-                            🎵 {% if song_name %}{{ song_name }}{% else %}Loading...{% endif %}
-                        </h4>
+                        <div id="song-info-container" class="mb-3 song-reveal-hidden">
+                            <h4 id="song-name-display" class="stardew-font mb-0" style="color: #634d31; font-size: 1.8rem;">
+                                🎵 {% if song_name %}{{ song_name }}{% else %}Loading...{% endif %}
+                            </h4>
+                        </div>
                         <p id="song-artist-display" class="stardew-font text-muted" style="font-size: 1.4rem;">
                             by {% if song_artist %}{{ song_artist }}{% else %}Please wait{% endif %}
                         </p>
@@ -95,7 +97,11 @@
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 if (currentPlayers.length > 0 && currentUsername === currentPlayers[0]) {
-                    gameSocket.send(JSON.stringify({'type': 'next_round'}));
+                    gameSocket.send(JSON.stringify({'type': 'round_reveal'}));
+                    
+                    setTimeout(() => {
+                        gameSocket.send(JSON.stringify({'type': 'next_round'}));
+                    }, 3000);
                 }
             }
         }, 1000);
@@ -138,6 +144,16 @@
         });
     }
 
+    function revealSong() {
+        const container = document.getElementById('song-info-container');
+        if (container) container.classList.replace('song-reveal-hidden', 'song-reveal-visible');
+    }
+
+    function hideSong() {
+        const container = document.getElementById('song-info-container');
+        if (container) container.classList.replace('song-reveal-visible', 'song-reveal-hidden');
+    }
+
     gameSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
 
@@ -149,7 +165,12 @@
             if (data.type === 'points_update' && data.user === currentUsername) {
                 guessInput.placeholder = "Correct! +" + data.points + " pts";
                 guessInput.disabled = true;
+                revealSong();
             }
+        }
+
+        if (data.type === 'round_reveal') {
+            revealSong();
         }
 
         // Handle specific incorrect feedback
@@ -162,6 +183,7 @@
 
         // COMBINED: Handled all song loading here
         if (data.type === 'load_new_round' || data.type === 'initial_song_data') {
+            hideSong();
             const song = data.song_data;
             if (!song) return;
 
