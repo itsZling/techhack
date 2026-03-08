@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-from .youtube_utils import get_random_video_from_playlist # Import YouTube instead
+from .youtube_utils import get_random_video_from_playlist
 
 connected_users = {}
 game_state = {}
@@ -32,12 +32,20 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.lobby_group_name, self.channel_name)
 
     async def receive(self, text_data):
-        data = json.loads(text_data)
         state = game_state.get(self.lobby_name)
+        data = json.loads(text_data)
         
         if data.get('type') == 'start_game':
+            game_mode = data.get('game_mode')
             players = connected_users.get(self.lobby_name, [])
-            song_data = await sync_to_async(get_random_video_from_playlist)(data.get('detail'))
+            detail = data.get('detail')
+            
+            song_data = await sync_to_async(get_random_video_from_playlist)(detail)
+            
+            if song_data is None or 'error' in song_data:
+                error_msg = song_data['error'] if (song_data and 'error' in song_data) else 'Invalid YouTube link!'
+                await self.send(text_data=json.dumps({'type': 'lobby_error', 'message': error_msg}))
+                return
             
             # Initialize scoring and round state
             game_state[self.lobby_name] = {
@@ -50,12 +58,15 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 'scores': {user: 0 for user in players} # Persistent scores
             }
             
-            await self.channel_layer.group_send(self.lobby_group_name, {
-                'type': 'game_start_redirect',
-                'game_mode': data.get('game_mode'),
-                'rounds': data.get('rounds'),
-                'detail': data.get('detail')
-            })
+            await self.channel_layer.group_send(
+                self.lobby_group_name,
+                {
+                    'type': 'game_start_redirect',
+                    'game_mode': game_mode,
+                    'rounds': data.get('rounds'),
+                    'detail': detail
+                }
+            )
 
         # --- 2. Handle Guess Submissions ---
         elif data.get('type') == 'submit_guess':
