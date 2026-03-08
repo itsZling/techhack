@@ -52,10 +52,12 @@
 
                     {% if song_name %}
                         <div class="mb-3">
-                            <h4 id="song-name-display" class="stardew-font mb-0" style="color: #634d31; font-size: 1.8rem;">
-                                🎵 {{ song_name }}
-                            </h4>
-                            <p id="song-artist-display" class="stardew-font text-muted" style="font-size: 1.4rem;">by {{ song_artist }}</p>
+                            <div id="song-info-container" class="mb-3 song-reveal-hidden">
+                                <h4 id="song-name-display" class="stardew-font mb-0" style="color: #634d31; font-size: 1.8rem;">
+                                    🎵 {{ song_name }}
+                                </h4>
+                                <p id="song-artist-display" class="stardew-font text-muted" style="font-size: 1.4rem;">by {{ song_artist }}</p>
+                            </div>
                         </div>
                     {% elif error_message %}
                         <div class="alert alert-danger stardew-font py-2" style="font-size: 1.2rem; border: 2px solid #dc3545;">
@@ -93,6 +95,16 @@
 
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const gameSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/lobby/' + lobbyId + '/');
+
+    function revealSong() {
+        const container = document.getElementById('song-info-container');
+        if (container) container.classList.replace('song-reveal-hidden', 'song-reveal-visible');
+    }
+
+    function hideSong() {
+        const container = document.getElementById('song-info-container');
+        if (container) container.classList.replace('song-reveal-visible', 'song-reveal-hidden');
+    }
 
     function startTimer() {
         clearInterval(timerInterval);
@@ -164,10 +176,18 @@
             if (data.type === 'points_update' && data.user === currentUsername) {
                 guessInput.placeholder = "Correct! +" + data.points + " pts";
                 guessInput.disabled = true;
+
+                revealSong();
             }
         }
 
+        if (data.type === 'round_reveal') {
+            revealSong();
+        }
+
         if (data.type === 'load_new_round' || data.type === 'initial_song_data') {
+            hideSong();
+            
             const song = data.song_data;
             document.getElementById('round-text').innerText = "Round " + (data.round_number || 1) + " / {{ rounds }}";
             document.getElementById('album-art').src = song.cover_art;
