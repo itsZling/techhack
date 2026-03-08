@@ -89,9 +89,12 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             game_state[self.lobby_name] = {
                 'current_round': 1,
                 'total_rounds': int(data.get('rounds', 5)),
-                'playlist_url': detail,
+                
+                # BUG FIX: Change this from 'detail' to 'playlist_url'
+                'playlist_url': playlist_url, 
+                
                 'current_answer': song_data['name'],
-                'current_artist': song_data['artist'], # Save these for the sync!
+                'current_artist': song_data['artist'], 
                 'current_video_id': song_data['video_id'],
                 'current_cover': song_data['cover_art'],
                 'guessed_correctly': [],
