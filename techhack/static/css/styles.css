@@ -361,8 +361,8 @@ h3.stardew-font {
 }
 
 .leaderboard-panel {
-    background-color: #bf7858; /* Terracotta/Wood base */
-    border: 6px solid #634d31; /* Dark brown border */
+    background-color: #bf7858;
+    border: 6px solid #634d31;
     box-shadow: 6px 6px 0px rgba(99, 77, 49, 0.5);
     border-radius: 4px;
 }

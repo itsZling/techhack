@@ -36,6 +36,7 @@
                 <div class="lobby-main-panel p-4 shadow-lg w-100">
                     
                     <div class="mb-4 mt-2" style="overflow: hidden; border: 4px solid #634d31; border-radius: 8px;">
+                        <div id="song-info-container" class="mb-3 song-reveal-hidden">
                         {% if song_cover %}
                             <img src="{{ song_cover }}" 
                                  id="album-art"
@@ -48,6 +49,7 @@
                                 alt="Guess this song" 
                                 style="max-height: 350px; object-fit: cover;">
                         {% endif %}
+                        </div>
                     </div>
 
                     {% if song_name %}
