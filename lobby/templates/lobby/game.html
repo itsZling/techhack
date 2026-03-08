@@ -81,9 +81,24 @@
     const lobbyId = "{{ lobby_id }}";
     const currentUsername = "{{ user.username }}";
     const initialVideoId = "{{ video_id }}";
-
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const gameSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/lobby/' + lobbyId + '/');
+
+    function revealSong() {
+        const container = document.getElementById('song-info-container');
+        if (container) {
+            container.style.filter = "none";
+            container.style.opacity = "1";
+        }
+    }
+
+    function hideSong() {
+        const container = document.getElementById('song-info-container');
+        if (container) {
+            container.style.filter = "blur(10px)";
+            container.style.opacity = "0.3";
+        }
+    }
 
     function startTimer() {
         clearInterval(timerInterval);
@@ -98,7 +113,7 @@
                 clearInterval(timerInterval);
                 if (currentPlayers.length > 0 && currentUsername === currentPlayers[0]) {
                     gameSocket.send(JSON.stringify({'type': 'round_reveal'}));
-                    
+
                     setTimeout(() => {
                         gameSocket.send(JSON.stringify({'type': 'next_round'}));
                     }, 3000);
@@ -144,18 +159,12 @@
         });
     }
 
-    function revealSong() {
-        const container = document.getElementById('song-info-container');
-        if (container) container.classList.replace('song-reveal-hidden', 'song-reveal-visible');
-    }
-
-    function hideSong() {
-        const container = document.getElementById('song-info-container');
-        if (container) container.classList.replace('song-reveal-visible', 'song-reveal-hidden');
-    }
-
     gameSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
+
+        if (data.type === 'round_reveal') {
+            revealSong();
+        }
 
         // COMBINED: Handled all player list and point updates here
         if (data.type === 'player_list' || data.type === 'points_update') {
@@ -215,19 +224,32 @@
 
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
-            height: '0', width: '0',
+            height: '0',
+            width: '0',
             videoId: initialVideoId || "dQw4w9WgXcQ",
-            host: 'https://www.youtube.com', // Explicit host for security handshake
+            host: 'https://www.youtube.com', // Force the secure host
             playerVars: {
-                'origin': window.location.origin, // Trusted origin fix
-                'enablejsapi': 1
+                'origin': window.location.origin, // Crucial: Tells YT your site is the owner
+                'enablejsapi': 1,
+                'widget_referrer': window.location.origin
             },
             events: {
                 'onReady': (e) => {
                     try {
                         e.target.playVideo();
-                        startTimer();
-                    } catch (err) { console.log("YT ready but delayed."); }
+                        startTimer(); // Now this is safe to call
+                    } catch (err) {
+                        console.error("YouTube Player failed to start:", err);
+                        // Fallback: Start timer anyway so the game doesn't soft-lock
+                        startTimer(); 
+                    }
+                },
+                'onError': (e) => {
+                    console.error("YouTube Error Code:", e.data);
+                    // If a video is blocked/deleted, skip to next round after a delay
+                    if (currentPlayers[0] === currentUsername) {
+                        setTimeout(() => gameSocket.send(JSON.stringify({'type': 'next_round'})), 3000);
+                    }
                 }
             }
         });
