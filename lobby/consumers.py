@@ -62,6 +62,15 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
             # VALIDATE THE SPOTIFY LINK FIRST
             if game_mode == 'spotify':
+                
+                if song_data is None or 'error' in song_data:
+                    error_msg = song_data['error'] if song_data else 'Unknown Spotify Error!'
+                    
+                    await self.send(text_data=json.dumps({
+                        'type': 'lobby_error',
+                        'message': error_msg
+                    }))
+                    return
                 # Run the Spotify check without freezing the server
                 song_data = await sync_to_async(get_random_song_from_playlist)(detail)
                 
