@@ -9,16 +9,15 @@
             <div class="col-4"></div>
             <div class="col-4 text-center">
                 <h4 class="stardew-font fw-bold mb-1" style="font-size: 2.8rem; color: #634d31;">Round 1 / {{ rounds }}</h4>
-                <span class="badge" style="background-color: #bf7858; font-family: 'VT323', monospace; font-size: 1.2rem;">{{ mode }} Mode</span>
+                <span class="badge" style="background-color: #bf7858; font-family: 'VT323', monospace; font-size: 1.2rem;">YouTube Mode</span>
                 <span class="text-muted fw-bold ms-2" style="font-family: 'VT323', monospace; font-size: 1.2rem; color: #8c6b4a !important;">{{ detail }}</span>
             </div>
             <div class="col-4 text-end">
-                <h4 class="text-danger fw-bold stardew-font" style="font-size: 3.5rem; text-shadow: 2px 2px 0px #ffd3ac;">25s</h4>
+                <h4 class="text-danger fw-bold stardew-font" style="font-size: 3.5rem; text-shadow: 2px 2px 0px #ffd3ac;">00:25</h4>
             </div>
         </div>
 
         <div class="row justify-content-center">
-            
             <div class="col-lg-3 position-absolute start-0 d-none d-lg-block" style="top: 50%; transform: translateY(-30%); z-index: 10;">
                 <div class="cozy-card p-3 shadow-lg">
                     <div class="text-center border-bottom border-dark pb-2 mb-2">
@@ -26,16 +25,8 @@
                     </div>
                     <ul class="list-group list-group-flush small stardew-font" style="font-size: 1.4rem;">
                         <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2">
-                            <span><span style="color: #bf7858;">1st</span> micahG</span>
-                            <span class="badge bg-dark rounded-pill">1,250</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2">
-                            <span><span style="color: #888;">2nd</span> bulba_dev</span>
-                            <span class="badge bg-dark rounded-pill">980</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2">
-                            <span><span style="color: #888;">3rd</span> python_pro</span>
-                            <span class="badge bg-dark rounded-pill">450</span>
+                            <span><span style="color: #bf7858;">1st</span> {{ user.username }}</span>
+                            <span class="badge bg-dark rounded-pill">0</span>
                         </li>
                     </ul>
                 </div>
@@ -71,14 +62,7 @@
                         </div>
                     {% endif %}
 
-                    {% if song_url %}
-                        <div class="mb-4 px-2">
-                            <audio controls autoplay class="w-100">
-                                <source src="{{ song_url }}" type="audio/mpeg">
-                                Your browser does not support the audio element.
-                            </audio>
-                        </div>
-                    {% endif %}
+                    <div id="player" style="display: none;"></div>
 
                     <hr style="border-top: 4px dashed #bf7858; opacity: 0.6;" class="my-4">
 
@@ -89,9 +73,41 @@
                             <button class="btn btn-dark text-white stardew-font px-4" type="button" style="background-color: #634d31; border: 3px solid #634d31; font-size: 1.4rem;">Submit</button>
                         </div>
                     </div>
-                </div> 
-            </div> 
-        </div> 
-    </div> 
-</div> 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+    let player;
+    const videoId = "{{ video_id }}"; // Fetched from your views.py
+
+    // This function creates an <iframe> (and YouTube player)
+    // after the API code downloads.
+    function onYouTubeIframeAPIReady() {
+        if (videoId) {
+            player = new YT.Player('player', {
+                height: '0',
+                width: '0',
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'disablekb': 1,
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+    }
+
+    function onPlayerReady(event) {
+        event.target.playVideo();
+    }
+</script>
 {% endblock content %}
