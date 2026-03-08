@@ -208,11 +208,11 @@ h3.stardew-font {
 }
 
 
-  * {
+* {
     font-family: 'VT323', monospace;
-  }
+}
 
-  .results-wrapper {
+.results-wrapper {
     min-height: 80vh;
     display: flex;
     flex-direction: column;
@@ -220,26 +220,26 @@ h3.stardew-font {
     justify-content: center;
     padding: 2rem 1rem;
     background-color: #f3efe6;
-  }
+}
 
-  .results-title {
+.results-title {
     font-size: 3.3rem;
     color: #bf7858;
     letter-spacing: -1px;
     margin-bottom: 0.25rem;
     text-align: center;
-  }
+}
 
-  .results-subtitle {
+.results-subtitle {
     color: #b8ada1;
     font-size: 1.4rem;
     margin-bottom: 1.2rem;
     text-align: center;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-  }
+}
 
-  .leaderboard {
+.leaderboard {
     width: 100%;
     max-width: 480px;
     display: flex;
@@ -249,22 +249,22 @@ h3.stardew-font {
     max-height: 500px;
     overflow-y: auto;
     padding-right: 4px;
-  }
+}
 
-  .leaderboard::-webkit-scrollbar {
+.leaderboard::-webkit-scrollbar {
     width: 6px;
-  }
+}
 
-  .leaderboard::-webkit-scrollbar-track {
+.leaderboard::-webkit-scrollbar-track {
     background: transparent;
-  }
+}
 
-  .leaderboard::-webkit-scrollbar-thumb {
+.leaderboard::-webkit-scrollbar-thumb {
     background: #bf7858;
     border-radius: 999px;
-  }
+}
 
-  .player-card {
+.player-card {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -274,63 +274,63 @@ h3.stardew-font {
     border: 3px solid #b8ada1;
     transition: transform 0.2s ease, border-color 0.4s ease;
     animation: slideIn 0.4s ease both;
-  }
+}
 
-  .player-card:hover {
+.player-card:hover {
     border-color: #7bae7f;
-  }
+}
 
-  .player-card.first-place {
+.player-card.first-place {
     border-color: #DAA425;
     background: #fff4e6;
     transform: scale(1.05);
-  }
+}
 
-  @keyframes slideIn {
+@keyframes slideIn {
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
-  }
+}
 
-  .rank {
+.rank {
     font-size: 1.6rem;
     min-width: 45px;
     font-weight: 600;
     color: #bf7858;
     text-align: center;
-  }
+}
 
-  .rank-1 { color: #DAA425; }
-  .rank-2 { color: #c0c0c0; }
-  .rank-3 { color: #cd7f32; }
+.rank-1 { color: #DAA425; }
+.rank-2 { color: #c0c0c0; }
+.rank-3 { color: #cd7f32; }
 
-  .player-name {
+.player-name {
     flex: 1;
     font-size: 1.55rem;
     font-weight: 600;
     color: #634d31;
-  }
+}
 
-  .player-score {
+.player-score {
     font-size: 1.55rem;
     font-weight: 600;
     color: #bf7858;
-  }
+}
 
-  .player-score span {
+.player-score span {
     font-size: 1.25rem;
     font-weight: 500;
     color: #b8ada1;
     margin-left: 2px;
-  }
+}
 
-  .action-buttons {
+.action-buttons {
     display: flex;
     gap: 0.75rem;
     width: 100%;
     max-width: 480px;
-  }
+}
 
-  .btn-action {
+.btn-action {
     background-color: #ffd3ac;
     color: #bf7858;
     flex: 1;
@@ -343,7 +343,19 @@ h3.stardew-font {
     transition: all 0.2s ease;
     text-decoration: none;
     text-align: center;
-  }
+}
 
-  .btn-lobby:hover { background: #7bae7f; color: white; }
-  .btn-leave:hover { background: #dca1a1; color: white; }
+.btn-lobby:hover { background: #7bae7f; color: white; }
+.btn-leave:hover { background: #dca1a1; color: white; }
+
+.song-reveal-hidden {
+    filter: blur(8px);
+    opacity: 0.3;
+    pointer-events: none;
+    transition: filter 0.5s ease, opacity 0.5s ease;
+}
+
+.song-reveal-visible {
+    filter: blur(0);
+    opacity: 1;
+}

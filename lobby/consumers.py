@@ -6,6 +6,21 @@ from .youtube_utils import get_random_video_from_playlist
 connected_users = {}
 game_state = {}
 
+GENRE_PLAYLISTS = {
+    'rap': 'https://www.youtube.com/watch?v=D8fHatctfRo&list=PLm7wnjUQm_FAd_pmjhhWz0MRnGdUDptg4',
+    'pop': 'https://www.youtube.com/watch?v=ekr2nIex040&list=PLuJAH0gKWEN686Jh6fQIlO0ue4O-nCK80',
+    'emo': 'https://www.youtube.com/watch?v=kXYiU_JCYtU&list=PLoSw9A7teER13dJv-HEAOotSgY_YmqS0h',
+    'genre': 'https://www.youtube.com/watch?v=uXZkGWbyvcM&list=RDqj1GooBp0ss&index=1',
+}
+
+ARTIST_PLAYLISTS = {
+    'bear_ghost': 'https://youtube.com/playlist?list=PLatQ_1ySwOFK5I5L0wbvBKzvv6-gIH8DJ&si=071jYlwbyQjK5hQC',
+    'bruno_mars': 'https://youtube.com/playlist?list=PLcXtXCm2EMK_L2b7aF-QcW9WvgDr5thpj&si=6VisRq4V_xM5zQr8',
+    'set_it_off': 'https://youtube.com/playlist?list=PLuSVDZ9w-aOgC-U_4cdPLHQ4RbJMDxNrs&si=rw14fPTbuD6NipKY',
+    'tyler_the_creator': 'https://youtube.com/playlist?list=PLD2X1LpnqWOO7hHW_zB6xUPhH3vjRmobB&si=aZTJfXUqdUh4zB_I',
+    'artist': 'https://www.youtube.com/watch?v=uXZkGWbyvcM&list=RDqj1GooBp0ss&index=1',
+}
+
 class LobbyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.lobby_name = self.scope['url_route']['kwargs']['lobby_id']
@@ -55,7 +70,15 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             players = connected_users.get(self.lobby_name, [])
             detail = data.get('detail')
             
-            song_data = await sync_to_async(get_random_video_from_playlist)(detail)
+            # Updated Logic: Check both dictionaries based on the mode
+            if game_mode == 'genre':
+                playlist_url = GENRE_PLAYLISTS.get(detail, detail)
+            elif game_mode == 'artist':
+                playlist_url = ARTIST_PLAYLISTS.get(detail, detail)
+            else:
+                playlist_url = detail
+            
+            song_data = await sync_to_async(get_random_video_from_playlist)(playlist_url)
             
             if song_data is None or 'error' in song_data:
                 error_msg = song_data['error'] if (song_data and 'error' in song_data) else 'Invalid YouTube link!'
@@ -100,7 +123,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             answer = state['current_answer'].strip().lower()
             
 
-            if guess == answer:
+            if guess and guess in answer and len(guess) > 2:
                 state['guessed_correctly'].append(self.username)
                 players = connected_users.get(self.lobby_name, [])
                 total_players = len(players)
@@ -144,6 +167,9 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 })
             else:
                 await self.channel_layer.group_send(self.lobby_group_name, {'type': 'game_over'})
+        
+        elif data.get('type') == 'round_reveal':
+            await self.channel_layer.group_send(self.lobby_group_name, {'type': 'round_reveal'})
 
     async def broadcast_player_list(self):
         players = connected_users.get(self.lobby_name, [])
@@ -151,6 +177,9 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             self.lobby_group_name,
             {'type': 'player_list_update', 'players': players}
         )
+        
+    async def round_reveal(self, event):
+        await self.send(text_data=json.dumps({'type': 'round_reveal'}))
 
     async def points_update(self, event):
             await self.send(text_data=json.dumps(event))
