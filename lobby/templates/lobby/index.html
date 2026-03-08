@@ -116,7 +116,14 @@
 
         if (data.type === 'lobby_error') {
             alert("⚠️ " + data.message);
-            return; // Stop the code here
+            // Re-enable the start button
+            const startBtn = document.querySelector('.btn-start');
+            if (startBtn) {
+                startBtn.disabled = false;
+                startBtn.innerText = "START";
+                startBtn.classList.replace('btn-secondary', 'btn-dark');
+            }
+            return;
         }
 
         if (data.type === 'redirect') {

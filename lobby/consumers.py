@@ -84,16 +84,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            # IF VALID (OR NOT SPOTIFY MODE), REDIRECT EVERYONE
-            await self.channel_layer.group_send(
-                self.lobby_group_name,
-                {
-                    'type': 'game_start_redirect',
-                    'game_mode': game_mode,
-                    'rounds': data.get('rounds'),
-                    'detail': detail
-                }
-            )
 
     # --- CUSTOM EVENT HANDLERS ---
 
