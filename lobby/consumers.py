@@ -1,7 +1,9 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
+# Import BOTH utilities
 from .spotify_utils import get_random_song_from_playlist
+from .youtube_utils import get_random_video_from_playlist
 
 connected_users = {}
 
@@ -44,36 +46,32 @@ class LobbyConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         
-        # 1. Handle Chat Messages
         if 'message' in data:
             await self.channel_layer.group_send(
                 self.lobby_group_name,
-                {
-                    'type': 'lobby_message',
-                    'message': data['message'],
-                    'user': self.username
-                }
+                {'type': 'lobby_message', 'message': data['message'], 'user': self.username}
             )
             
-        # 2. Handle Game Start Config
         elif data.get('type') == 'start_game':
             game_mode = data.get('game_mode')
             detail = data.get('detail')
 
-            # VALIDATE THE SPOTIFY LINK FIRST
+            # NEW: Switch logic based on mode
+            song_data = None
             if game_mode == 'spotify':
+                # Use the Spotify fetcher if mode is playlist
                 song_data = await sync_to_async(get_random_song_from_playlist)(detail)
-                
+            elif game_mode == 'playlist': # Assuming you renamed it to 'playlist' in HTML
+                # Use the YouTube fetcher
+                song_data = await sync_to_async(get_random_video_from_playlist)(detail)
+
+            # Check for errors from either service
+            if game_mode in ['spotify', 'playlist']:
                 if song_data is None or 'error' in song_data:
-                    error_msg = song_data['error'] if song_data else 'Unknown Spotify Error!'
-                    
-                    await self.send(text_data=json.dumps({
-                        'type': 'lobby_error',
-                        'message': error_msg
-                    }))
-                    return
-                # Run the Spotify check without freezing the server
-                
+                    error_msg = song_data['error'] if (song_data and 'error' in song_data) else 'Invalid playlist link!'
+                    await self.send(text_data=json.dumps({'type': 'lobby_error', 'message': error_msg}))
+                    return 
+
             await self.channel_layer.group_send(
                 self.lobby_group_name,
                 {

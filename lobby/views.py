@@ -16,34 +16,26 @@ def game(request):
 
     video_id, song_cover, song_name, song_artist = "", "", "", ""
     error_message = ""
-    
-    song_data = None
-    if mode == 'spotify': # You can keep the 'spotify' name or rename it to 'playlist' in your HTML
+
+    # Fetch using YouTube utility
+    if mode == 'spotify' or mode == 'playlist':
+        from .youtube_utils import get_random_video_from_playlist
         song_data = get_random_video_from_playlist(detail)
         
         if song_data and 'error' not in song_data:
-            video_id = song_data['video_id']
+            video_id = song_data['video_id'] # Use the ID for the YouTube player
             song_cover = song_data['cover_art']
             song_name = song_data['name']
             song_artist = song_data['artist']
         else:
-            if song_data and 'error' in song_data:
-                error_message = song_data['error']
-            else:
-                error_message = f"Could not find any playable videos for this {mode}."
-   
+            error_message = song_data['error'] if song_data else "Video not found."
+
     context = {
-        'mode': mode,
-        'rounds': rounds,
-        'detail': detail,
-        'lobby_id': lobby_id,
-        'video_id': video_id, # Passed to the template for the YouTube player
-        'song_cover': song_cover,
-        'song_name': song_name,
-        'song_artist': song_artist,
+        'mode': mode, 'rounds': rounds, 'detail': detail, 'lobby_id': lobby_id,
+        'video_id': video_id, # This is crucial for the JS player
+        'song_cover': song_cover, 'song_name': song_name, 'song_artist': song_artist,
         'error_message': error_message,
     }
-
     return render(request, 'lobby/game.html', context)
 
 @login_required
