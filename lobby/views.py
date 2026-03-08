@@ -1,7 +1,5 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-
-# Make sure all three of your Spotify tools are imported!
 from .youtube_utils import get_random_video_from_playlist
 
 def index(request, lobby_id):
@@ -17,13 +15,11 @@ def game(request):
     video_id, song_cover, song_name, song_artist = "", "", "", ""
     error_message = ""
 
-    # Fetch using YouTube utility
     if mode == 'spotify' or mode == 'playlist':
-        from .youtube_utils import get_random_video_from_playlist
         song_data = get_random_video_from_playlist(detail)
         
         if song_data and 'error' not in song_data:
-            video_id = song_data['video_id'] # Use the ID for the YouTube player
+            video_id = song_data['video_id']
             song_cover = song_data['cover_art']
             song_name = song_data['name']
             song_artist = song_data['artist']
@@ -32,8 +28,8 @@ def game(request):
 
     context = {
         'mode': mode, 'rounds': rounds, 'detail': detail, 'lobby_id': lobby_id,
-        'video_id': video_id, # This is crucial for the JS player
-        'song_cover': song_cover, 'song_name': song_name, 'song_artist': song_artist,
+        'video_id': video_id, 'song_cover': song_cover,
+        'song_name': song_name, 'song_artist': song_artist,
         'error_message': error_message,
     }
     return render(request, 'lobby/game.html', context)
