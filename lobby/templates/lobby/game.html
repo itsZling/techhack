@@ -52,10 +52,10 @@
 
                     {% if song_name %}
                         <div class="mb-3">
-                            <h4 class="stardew-font mb-0" style="color: #634d31; font-size: 1.8rem;">
+                            <h4 id="song-name-display" class="stardew-font mb-0" style="color: #634d31; font-size: 1.8rem;">
                                 🎵 {{ song_name }}
                             </h4>
-                            <p class="stardew-font text-muted" style="font-size: 1.4rem;">by {{ song_artist }}</p>
+                            <p id="song-artist-display" class="stardew-font text-muted" style="font-size: 1.4rem;">by {{ song_artist }}</p>
                         </div>
                     {% elif error_message %}
                         <div class="alert alert-danger stardew-font py-2" style="font-size: 1.2rem; border: 2px solid #dc3545;">
@@ -178,8 +178,17 @@
             // Update UI with new song data without refreshing the page!
             guessInput.disabled = false;
             guessInput.placeholder = "Start typing...";
-            document.getElementById('round-text').innerText = "Round " + data.round_number + " / {{ rounds }}";
-            document.getElementById('album-art').src = data.song_data.cover_art;
+
+            const roundHeader = document.getElementById('round-text');
+            if (roundHeader) roundHeader.innerText = "Round " + data.round_number + " / {{ rounds }}";
+
+            const albumArt = document.getElementById('album-art');
+            if (albumArt) albumArt.src = data.song_data.cover_art;
+
+            const nameDisplay = document.getElementById('song-name-display');
+            const artistDisplay = document.getElementById('song-artist-display');
+            if (nameDisplay) nameDisplay.innerText = "🎵 " + data.song_data.name;
+            if (artistDisplay) artistDisplay.innerText = "by " + data.song_data.artist;
             
             // Reload YouTube Player
             if (player) {
