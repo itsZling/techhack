@@ -107,7 +107,7 @@
     let currentPlayers = ["{{ user.username }}"]
     const lobbyId = "{{ lobby_id }}";
     const currentUsername = "{{ user.username }}";
-    const videoId = "{{ video_id }}"; // Fetched from your views.py
+    let currentVideoId = "{{ video_id }}"; // Fetched from your views.py
 
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const gameSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/lobby/' + lobbyId + '/');
@@ -184,16 +184,24 @@
         const data = JSON.parse(e.data);
 
         if (data.type === 'player_list' || data.type === 'points_update') {
-            // Use the scores from the server, or default to 0 for everyone in the list
             const scores = data.leaderboard || data.players.reduce((acc, p) => ({...acc, [p]: 0}), {});
             updateLeaderboardUI(scores, data.players);
 
             if (data.type === 'points_update' && data.user === currentUsername) {
                 guessInput.placeholder = "Correct! +" + data.points + " pts";
                 guessInput.disabled = true;
-
                 revealSong();
             }
+        }
+
+        if (data.type === 'incorrect_guess' && data.user === currentUsername) {
+            guessInput.classList.add('shake-error');
+            guessInput.placeholder = "Incorrect! Wait for next round...";
+            guessInput.disabled = true;
+
+            setTimeout(() => {
+                guessInput.classList.remove('shake-error');
+            }, 500);
         }
 
         if (data.type === 'round_reveal') {
@@ -202,12 +210,19 @@
 
         if (data.type === 'load_new_round' || data.type === 'initial_song_data') {
             hideSong();
+
+            if (data.type === 'load_new_round') {
+                guessInput.disabled = false;
+                guessInput.placeholder = "Start typing...";
+            }
             
             const song = data.song_data;
             document.getElementById('round-text').innerText = "Round " + (data.round_number || 1) + " / {{ rounds }}";
             document.getElementById('album-art').src = song.cover_art;
             document.getElementById('song-name-display').innerText = "🎵 " + song.name;
             document.getElementById('song-artist-display').innerText = "by " + song.artist;
+
+            currentVideoId = song.video_id;
             
             if (player && player.loadVideoById) {
                 player.loadVideoById(song.video_id);
@@ -241,15 +256,6 @@
                 guessInput.disabled = true;
             } 
             
-            if (data.type === 'incorrect_guess' && data.user === currentUsername) {
-                guessInput.classList.add('shake-error');
-                guessInput.placeholder = "Incorrect! Wait for next round...";
-                guessInput.disabled = true;
-
-                setTimeout(() => {
-                    guessInput.classList.remove('shake-error');
-                }, 500);
-            }
 
             currentPlayers = Object.keys(data.leaderboard);
         }
@@ -279,7 +285,6 @@
         }
         
         if (data.type === 'game_over') {
-            // Pass the lobbyId to the results URL
             window.location.href = `/lobby/results/${lobbyId}/`;
         }
     };
@@ -287,8 +292,14 @@
     // YouTube API Ready
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
-            height: '0', width: '0', videoId: "{{ video_id }}",
-            events: { 'onReady': (e) => { e.target.playVideo(); startTimer(); } }
+            height: '0', 
+            width: '0', 
+            videoId: currentVideoId,
+            playerVars: {
+                'autoplay': 1,
+                'playsinline': 1
+            },
+            events: { 'onReady': (e) => { e.target.playVideo(); } }
         });
     }
 
