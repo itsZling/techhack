@@ -147,19 +147,12 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             if len(state['has_guessed']) >= len(players_in_lobby):
                 # Trigger next round immediately because everyone has tried!
                 await self.receive(json.dumps({'type': 'next_round'}))
-                
-        elif data.get('type') == 'round_reveal':
-            await self.channel_layer.group_send(
-                    self.lobby_group_name,
-                    {'type': 'round_reveal'}
-                )
 
         # --- 3. Handle Next Round ---
         elif data.get('type') == 'next_round':
             if not state: return
 
             if state['current_round'] < state['total_rounds']:
-                
                 song_data = await sync_to_async(get_random_video_from_playlist)(state['playlist_url'])
                 
                 if not song_data or 'error' in song_data:
@@ -194,11 +187,8 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             {'type': 'player_list_update', 'players': players}
         )
 
-    async def round_reveal(self, event):
-        await self.send(text_data=json.dumps({'type': 'round_reveal'}))
-
     async def points_update(self, event):
-            await self.send(text_data=json.dumps(event))
+        await self.send(text_data=json.dumps(event))
 
     async def load_new_round(self, event):
         await self.send(text_data=json.dumps(event))

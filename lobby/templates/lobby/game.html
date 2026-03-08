@@ -101,7 +101,7 @@
     const gameSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/lobby/' + lobbyId + '/');
 
 
-    function startTimer() {
+function startTimer() {
         clearInterval(timerInterval);
         timeLeft = 25;
         const display = document.getElementById('timer-display');
@@ -112,12 +112,9 @@
             
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
+                // REMOVED: Intermission delay. The host sends next_round immediately.
                 if (currentPlayers.length > 0 && currentUsername === currentPlayers[0]) {
-                    gameSocket.send(JSON.stringify({'type': 'round_reveal'}));
-
-                    setTimeout(() => {
-                        gameSocket.send(JSON.stringify({'type': 'next_round'}));
-                    }, 3000);
+                    gameSocket.send(JSON.stringify({'type': 'next_round'}));
                 }
             }
         }, 1000);
@@ -162,10 +159,6 @@
 
     gameSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
-
-        if (data.type === 'round_reveal') {
-            revealSong();
-        }
 
         // COMBINED: Handled all player list and point updates here
         if (data.type === 'player_list' || data.type === 'points_update') {
