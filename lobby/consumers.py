@@ -18,6 +18,7 @@ ARTIST_PLAYLISTS = {
     'bruno_mars': 'https://youtube.com/playlist?list=PLcXtXCm2EMK_L2b7aF-QcW9WvgDr5thpj&si=6VisRq4V_xM5zQr8',
     'set_it_off': 'https://youtube.com/playlist?list=PLuSVDZ9w-aOgC-U_4cdPLHQ4RbJMDxNrs&si=rw14fPTbuD6NipKY',
     'tyler_the_creator': 'https://youtube.com/playlist?list=PLD2X1LpnqWOO7hHW_zB6xUPhH3vjRmobB&si=aZTJfXUqdUh4zB_I',
+    'lauefy': 'https://youtube.com/playlist?list=PLpeaYh4ivZkPJn3-eLLy5OnEU0RvvTK_H&si=e_zmbKy58MFBVw9L',
     'artist': 'https://www.youtube.com/watch?v=uXZkGWbyvcM&list=RDqj1GooBp0ss&index=1',
 }
 
