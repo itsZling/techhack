@@ -97,7 +97,7 @@
 <script>
     document.getElementById('host-start-btn').addEventListener('click', () => {
         if (player && player.getPlayerState) player.playVideo(); // Unlocks Host Audio
-        gameSocket.send(JSON.stringify({'type': 'start_first_round'})); // Tells server to start!
+        gameSocket.send(JSON.stringify({'type': 'start_first_round'}));
     });
 
     document.getElementById('player-ready-btn').addEventListener('click', () => {
@@ -236,7 +236,7 @@
 
             if (data.type === 'player_list') {
                 const overlay = document.getElementById('ready-overlay');
-                if (overlay && overlay.style.display !== 'none') {
+                if (overlay && !overlay.classList.contains('d-none')) {
                     const isHost = (currentPlayers.length > 0 && currentUsername === currentPlayers[0]);
                     if (isHost) {
                         document.getElementById('host-start-btn').classList.remove('d-none');
@@ -247,18 +247,20 @@
                 }
             }
 
-            
             if (data.type === 'points_update' && data.user === currentUsername) {
                 guessInput.placeholder = "Correct! +" + data.points + " pts";
                 guessInput.disabled = true;
                 revealSong();
             }
-
         }
 
         // --- 1.5 First Round Signal ---
         if (data.type === 'start_first_round') {
-            document.getElementById('ready-overlay').style.display = 'none';
+            const overlay = document.getElementById('ready-overlay');
+            if (overlay) {
+                overlay.classList.remove('d-flex');
+                overlay.classList.add('d-none');
+            }
             startPrepPhase();
         }
 
