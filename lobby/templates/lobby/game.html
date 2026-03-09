@@ -87,30 +87,15 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-    function revealSong() {
-        const container = document.getElementById('song-info-container');
-        if (container) {
-            container.style.filter = "none";
-            container.style.opacity = "1";
-        }
-    }
-
-    function hideSong() {
-        const container = document.getElementById('song-info-container');
-        if (container) {
-            container.style.filter = "blur(10px)";
-            container.style.opacity = "0.3";
-        }
-    }
-
     let player;
     let timerInterval;
     let prepInterval;
+    let revealInterval;
     let timeLeft = 25;
     let currentPlayers = ["{{ user.username }}"]
     const lobbyId = "{{ lobby_id }}";
     const currentUsername = "{{ user.username }}";
-    let currentVideoId = "{{ video_id }}"; // Fetched from your views.py
+    let currentVideoId = "{{ video_id }}";
 
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const gameSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/lobby/' + lobbyId + '/');
@@ -127,6 +112,8 @@
 
     function startTimer() {
         clearInterval(timerInterval);
+        clearInterval(prepInterval);
+        clearInterval(revealInterval);
         timeLeft = 25;
         const display = document.getElementById('timer-display');
         
@@ -136,16 +123,16 @@
             
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                // ONLY THE HOST triggers the next round to keep everyone synced
+                // Host triggers the 5-second reveal phase instead of skipping to next round!
                 if (currentPlayers.length > 0 && currentUsername === currentPlayers[0]) {
-                    gameSocket.send(JSON.stringify({'type': 'next_round'}));
+                    gameSocket.send(JSON.stringify({'type': 'round_reveal'}));
                 }
             }
         }, 1000);
     }
 
     const guessInput = document.getElementById('songGuess');
-    const submitBtn = document.querySelector('button.px-4'); // Your Submit button
+    const submitBtn = document.querySelector('button.px-4'); 
 
     function sendGuess() {
         const guess = guessInput.value;
@@ -154,7 +141,7 @@
                 'type': 'submit_guess',
                 'guess': guess
             }));
-            guessInput.value = ''; // Clear input
+            guessInput.value = ''; 
         }
     }
 
@@ -166,15 +153,11 @@
         if (!leaderboardList) return;
         leaderboardList.innerHTML = '';
 
-        // Sort entries by score (descending)
         const sortedEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-        
-        // Update our local host-tracking list
         currentPlayers = sortedEntries.map(entry => entry[0]);
 
         sortedEntries.forEach(([user, score], index) => {
             const rankText = (index === 0) ? "1st" : (index === 1) ? "2nd" : (index === 2) ? "3rd" : (index + 1) + "th";
-            
             leaderboardList.innerHTML += `
                 <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2 leaderboard-item">
                     <span><span class="leaderboard-rank">${rankText}</span> ${user}</span>
@@ -186,6 +169,7 @@
     gameSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
 
+        // --- 1. Leaderboard & Points ---
         if (data.type === 'player_list' || data.type === 'points_update') {
             const scores = data.leaderboard || data.players.reduce((acc, p) => ({...acc, [p]: 0}), {});
             updateLeaderboardUI(scores, data.players);
@@ -197,6 +181,7 @@
             }
         }
 
+        // --- 2. Incorrect Guess ---
         if (data.type === 'incorrect_guess' && data.user === currentUsername) {
             guessInput.classList.add('shake-error');
             guessInput.placeholder = "Incorrect! Wait for next round...";
@@ -207,24 +192,49 @@
             }, 500);
         }
 
+        // --- 3. 5-Second Reveal Phase ---
         if (data.type === 'round_reveal') {
+            clearInterval(timerInterval);
+            clearInterval(prepInterval);
+            clearInterval(revealInterval);
+            
             revealSong();
+            guessInput.disabled = true;
+            guessInput.placeholder = "Round over! Next song soon...";
+
+            let revealTime = 5;
+            const display = document.getElementById('timer-display');
+            display.innerText = "NEXT: " + revealTime;
+
+            revealInterval = setInterval(() => {
+                revealTime--;
+                if (revealTime > 0) {
+                    display.innerText = "NEXT: " + revealTime;
+                } else {
+                    clearInterval(revealInterval);
+                    display.innerText = "LOADING...";
+                    
+                    // Host actually requests the next song after 5 seconds
+                    if (currentPlayers.length > 0 && currentUsername === currentPlayers[0]) {
+                        gameSocket.send(JSON.stringify({'type': 'next_round'}));
+                    }
+                }
+            }, 1000);
         }
 
+        // --- 4. 3-Second Prep Phase & Load Round ---
         if (data.type === 'load_new_round' || data.type === 'initial_song_data') {
             hideSong();
-
             guessInput.disabled = true;
             guessInput.placeholder = "Loading song...";
             
             const song = data.song_data;
             document.getElementById('round-text').innerText = "Round " + (data.round_number || 1) + " / {{ rounds }}";
             document.getElementById('album-art').src = song.cover_art;
-            document.getElementById('song-name-display').innerText = "🎵 " + song.name;
+            document.getElementById('song-name-display').innerText = "七 " + song.name;
             document.getElementById('song-artist-display').innerText = "by " + song.artist;
 
             currentVideoId = song.video_id;
-            
             if (player && player.loadVideoById) {
                 player.loadVideoById(song.video_id);
             }
@@ -234,14 +244,16 @@
             display.innerText = "READY: " + prepTime;
 
             clearInterval(timerInterval);
-            clearInterval(prepTime);
+            clearInterval(prepInterval);
+            clearInterval(revealInterval);
 
             prepInterval = setInterval(() => {
                 prepTime--;
                 if (prepTime > 0) {
                     display.innerText = "READY: " + prepTime;
                 } else {
-                    clearInterval(prepTime);
+                    clearInterval(prepInterval);
+                    
                     guessInput.disabled = false;
                     guessInput.placeholder = "Start typing...";
 
@@ -250,63 +262,10 @@
                     }
                     startTimer();
                 }
-
             }, 1000);
         }
-
-        if (data.type === 'points_update') {
-            // Update the UI: Leaderboard
-            const leaderboardList = document.querySelector('.list-group');
-            leaderboardList.innerHTML = '';
-
-            const sortedEntries = Object.entries(data.leaderboard).sort((a, b) => b[1] - a[1]);
-
-            currentPlayers = sortedEntries.map(entry => entry[0]);
-
-            sortedEntries.forEach(([user, score], index) => {
-                const rankText = (index === 0) ? "1st" : (index === 1) ? "2nd" : (index === 2) ? "3rd" : (index + 1) + "th";
-                
-                leaderboardList.innerHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2 leaderboard-item">
-                        <span><span class="leaderboard-rank">${rankText}</span> ${user}</span>
-                        <span class="badge rounded-pill leaderboard-score-badge">${score}</span>
-                    </li>`;
-            });
-
-            if (data.user === currentUsername) {
-                const guessInput = document.getElementById('songGuess');
-                guessInput.placeholder = "Correct! +" + data.points + " pts";
-                guessInput.disabled = true;
-            } 
-            
-
-            currentPlayers = Object.keys(data.leaderboard);
-        }
-
-        if (data.type === 'load_new_round') {
-            // Update UI with new song data without refreshing the page!
-            guessInput.disabled = false;
-            guessInput.placeholder = "Start typing...";
-
-            const roundHeader = document.getElementById('round-text');
-            if (roundHeader) roundHeader.innerText = "Round " + data.round_number + " / {{ rounds }}";
-
-            const albumArt = document.getElementById('album-art');
-            if (albumArt) albumArt.src = data.song_data.cover_art;
-
-            const nameDisplay = document.getElementById('song-name-display');
-            const artistDisplay = document.getElementById('song-artist-display');
-            if (nameDisplay) nameDisplay.innerText = "🎵 " + data.song_data.name;
-            if (artistDisplay) artistDisplay.innerText = "by " + data.song_data.artist;
-            
-            // Reload YouTube Player
-            if (player) {
-                player.loadVideoById(data.song_data.video_id);
-                player.playVideo();
-            }
-            startTimer();
-        }
         
+        // --- 5. Game Over ---
         if (data.type === 'game_over') {
             window.location.href = `/lobby/results/${lobbyId}/`;
         }
@@ -322,11 +281,7 @@
                 'autoplay': 0,
                 'playsinline': 1
             },
-            events: { 
-                'onReady': (e) => { 
-                    console.log("YouTube Player is ready to be triggered by countdown."); 
-                } 
-            }
+            events: { 'onReady': (e) => { e.target.playVideo(); } }
         });
     }
 

@@ -158,7 +158,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             players_in_lobby = connected_users.get(self.lobby_name, [])
             if len(state['has_guessed']) >= len(players_in_lobby):
                 # Trigger next round immediately because everyone has tried!
-                await self.receive(json.dumps({'type': 'next_round'}))
+                await self.receive(json.dumps({'type': 'round_reveal'}))
 
         # --- 3. Handle Next Round ---
         elif data.get('type') == 'next_round':
