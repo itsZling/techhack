@@ -14,7 +14,7 @@ GENRE_PLAYLISTS = {
 }
 
 ARTIST_PLAYLISTS = {
-    'bear_ghost': 'https://youtube.com/playlist?list=PLatQ_1ySwOFK5I5L0wbvBKzvv6-gIH8DJ&si=071jYlwbyQjK5hQC',
+    'bear_ghost': 'https://www.youtube.com/watch?v=0vuwKEl7c7w&list=PLwqo1s9IdFScS5o5YuQRdEtnJMSEYreLT',
     'bruno_mars': 'https://youtube.com/playlist?list=PLcXtXCm2EMK_L2b7aF-QcW9WvgDr5thpj&si=6VisRq4V_xM5zQr8',
     'set_it_off': 'https://youtube.com/playlist?list=PLuSVDZ9w-aOgC-U_4cdPLHQ4RbJMDxNrs&si=rw14fPTbuD6NipKY',
     'tyler_the_creator': 'https://youtube.com/playlist?list=PLD2X1LpnqWOO7hHW_zB6xUPhH3vjRmobB&si=aZTJfXUqdUh4zB_I',

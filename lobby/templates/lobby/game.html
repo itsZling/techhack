@@ -95,45 +95,26 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
+    // --- 1. Audio Unlock Buttons ---
     document.getElementById('host-start-btn').addEventListener('click', () => {
-        if (player && player.getPlayerState) player.playVideo(); // Unlocks Host Audio
-        gameSocket.send(JSON.stringify({'type': 'start_first_round'}));
+        // INSTANTLY play the video on click to satisfy browser security
+        if (player && player.playVideo) player.playVideo(); 
+        gameSocket.send(JSON.stringify({'type': 'start_first_round'})); 
     });
 
     document.getElementById('player-ready-btn').addEventListener('click', () => {
-        if (player && player.getPlayerState) player.playVideo(); // Unlocks Player Audio
+        if (player && player.playVideo) {
+            player.playVideo(); 
+            // Pause a split second later so they don't hear it before the host starts
+            setTimeout(() => { if (player.pauseVideo) player.pauseVideo(); }, 150); 
+        }
         document.getElementById('player-ready-btn').classList.add('d-none');
         document.getElementById('waiting-text').classList.remove('d-none');
     });
 
-    // We moved the countdown into a reusable function!
-    function startPrepPhase() {
-        let prepTime = 3;
-        const display = document.getElementById('timer-display');
-        display.innerText = "READY: " + prepTime;
-
-        clearInterval(timerInterval);
-        clearInterval(prepInterval);
-        clearInterval(revealInterval);
-
-        prepInterval = setInterval(() => {
-            prepTime--;
-            if (prepTime > 0) {
-                display.innerText = "READY: " + prepTime;
-            } else {
-                clearInterval(prepInterval);
-                guessInput.disabled = false;
-                guessInput.placeholder = "Start typing...";
-
-                if (player && player.playVideo) player.playVideo();
-                startTimer();
-            }
-        }, 1000);
-    }
-
+    // --- 2. Variables (Removed prepInterval) ---
     let player;
     let timerInterval;
-    let prepInterval;
     let revealInterval;
     let timeLeft = 25;
     let currentPlayers = ["{{ user.username }}"]
@@ -147,12 +128,11 @@
     function revealSong() {
         const art = document.getElementById('album-art-container');
         const text = document.getElementById('song-text-container');
-        
         if (art) { art.style.filter = "none"; art.style.opacity = "1"; }
         if (text) { 
             text.style.filter = "none"; 
             text.style.opacity = "1"; 
-            text.style.userSelect = "auto";       // <-- Restores selection
+            text.style.userSelect = "auto";       
             text.style.pointerEvents = "auto"; 
         }
     }
@@ -160,19 +140,18 @@
     function hideSong() {
         const art = document.getElementById('album-art-container');
         const text = document.getElementById('song-text-container');
-        
         if (art) { art.style.filter = "blur(15px)"; art.style.opacity = "0.7"; }
         if (text) { 
             text.style.filter = "blur(10px)"; 
             text.style.opacity = "0"; 
-            text.style.userSelect = "none";       // <-- Prevents highlighting!
-            text.style.pointerEvents = "none";    // <-- Prevents right-clicking/inspecting!
+            text.style.userSelect = "none";       
+            text.style.pointerEvents = "none";    
         }
     }
 
+    // --- 3. Timer Function (Starts immediately now) ---
     function startTimer() {
         clearInterval(timerInterval);
-        clearInterval(prepInterval);
         clearInterval(revealInterval);
         timeLeft = 25;
         const display = document.getElementById('timer-display');
@@ -183,7 +162,6 @@
             
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                // Host triggers the 5-second reveal phase instead of skipping to next round!
                 if (currentPlayers.length > 0 && currentUsername === currentPlayers[0]) {
                     gameSocket.send(JSON.stringify({'type': 'round_reveal'}));
                 }
@@ -229,7 +207,7 @@
     gameSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
 
-        // --- 1. Leaderboard and Points ---
+        // --- Leaderboard & Points ---
         if (data.type === 'player_list' || data.type === 'points_update') {
             const scores = data.leaderboard || data.players.reduce((acc, p) => ({...acc, [p]: 0}), {});
             updateLeaderboardUI(scores, data.players);
@@ -254,17 +232,22 @@
             }
         }
 
-        // --- 1.5 First Round Signal ---
+        // --- Start First Round Signal ---
         if (data.type === 'start_first_round') {
             const overlay = document.getElementById('ready-overlay');
             if (overlay) {
                 overlay.classList.remove('d-flex');
                 overlay.classList.add('d-none');
             }
-            startPrepPhase();
+            
+            guessInput.disabled = false;
+            guessInput.placeholder = "Start typing...";
+            
+            if (player && player.playVideo) player.playVideo();
+            startTimer();
         }
 
-        // --- 2. Incorrect Guess ---
+        // --- Incorrect Guess ---
         if (data.type === 'incorrect_guess' && data.user === currentUsername) {
             guessInput.classList.add('shake-error');
             guessInput.placeholder = "Incorrect! Wait for next round...";
@@ -275,11 +258,9 @@
             }, 500);
         }
 
-        // --- 3. Load Round Data
+        // --- Load Round Data ---
         if (data.type === 'load_new_round' || data.type === 'initial_song_data') {
             hideSong();
-            guessInput.disabled = true;
-            guessInput.placeholder = "Loading song...";
             
             const song = data.song_data;
             document.getElementById('round-text').innerText = "Round " + (data.round_number || 1) + " / {{ rounds }}";
@@ -292,16 +273,22 @@
                 player.loadVideoById(song.video_id);
             }
 
-            // ONLY start the countdown immediately if it's round 2+
             if (data.type === 'load_new_round') {
-                startPrepPhase();
+                // If it's a new round, start instantly
+                guessInput.disabled = false;
+                guessInput.placeholder = "Start typing...";
+                if (player && player.playVideo) player.playVideo();
+                startTimer();
+            } else {
+                // If it's round 1, wait for Host
+                guessInput.disabled = true;
+                guessInput.placeholder = "Waiting for host...";
             }
         }
 
-        // --- 3. 5-Second Reveal Phase ---
+        // --- 5-Second Reveal Phase ---
         if (data.type === 'round_reveal') {
             clearInterval(timerInterval);
-            clearInterval(prepInterval);
             clearInterval(revealInterval);
             
             revealSong();
@@ -320,16 +307,14 @@
                     clearInterval(revealInterval);
                     display.innerText = "LOADING...";
                     
-                    // Host actually requests the next song after 5 seconds
                     if (currentPlayers.length > 0 && currentUsername === currentPlayers[0]) {
                         gameSocket.send(JSON.stringify({'type': 'next_round'}));
                     }
                 }
             }, 1000);
         }
-
         
-        // --- 5. Game Over ---
+        // --- Game Over ---
         if (data.type === 'game_over') {
             window.location.href = `/lobby/results/${lobbyId}/`;
         }
@@ -345,12 +330,10 @@
                 'autoplay': 0,
                 'playsinline': 1
             },
-            events: { 'onReady': (e) => { e.target.playVideo(); } }
+            events: { 'onReady': (e) => { 
+                // buttons/websocket start song 
+            } }
         });
-    }
-
-    function onPlayerReady(event) {
-        event.target.playVideo();
     }
 </script>
 {% endblock content %}
