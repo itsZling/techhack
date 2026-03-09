@@ -105,6 +105,7 @@
 
     let player;
     let timerInterval;
+    let prepInterval;
     let timeLeft = 25;
     let currentPlayers = ["{{ user.username }}"]
     const lobbyId = "{{ lobby_id }}";
@@ -213,10 +214,8 @@
         if (data.type === 'load_new_round' || data.type === 'initial_song_data') {
             hideSong();
 
-            if (data.type === 'load_new_round') {
-                guessInput.disabled = false;
-                guessInput.placeholder = "Start typing...";
-            }
+            guessInput.disabled = true;
+            guessInput.placeholder = "Loading song...";
             
             const song = data.song_data;
             document.getElementById('round-text').innerText = "Round " + (data.round_number || 1) + " / {{ rounds }}";
@@ -228,9 +227,31 @@
             
             if (player && player.loadVideoById) {
                 player.loadVideoById(song.video_id);
-                player.playVideo();
             }
-            startTimer();
+
+            let prepTime = 3;
+            const display = document.getElementById('timer-display');
+            display.innerText = "READY: " + prepTime;
+
+            clearInterval(timerInterval);
+            clearInterval(prepTime);
+
+            prepInterval = setInterval(() => {
+                prepTime--;
+                if (prepTime > 0) {
+                    display.innerText = "READY: " + prepTime;
+                } else {
+                    clearInterval(prepTime);
+                    guessInput.disabled = false;
+                    guessInput.placeholder = "Start typing...";
+
+                    if (player && player.playVideo) {
+                        player.playVideo();
+                    }
+                    startTimer();
+                }
+
+            }, 1000);
         }
 
         if (data.type === 'points_update') {
@@ -298,10 +319,14 @@
             width: '0', 
             videoId: currentVideoId,
             playerVars: {
-                'autoplay': 1,
+                'autoplay': 0,
                 'playsinline': 1
             },
-            events: { 'onReady': (e) => { e.target.playVideo(); } }
+            events: { 
+                'onReady': (e) => { 
+                    console.log("YouTube Player is ready to be triggered by countdown."); 
+                } 
+            }
         });
     }
 
