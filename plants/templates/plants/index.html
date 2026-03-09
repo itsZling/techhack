@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center py-4" style="min-height: calc(100vh - 160px);">
+    <div class="lobby-main-panel p-4 shadow-lg w-100" style="max-width: 900px;">
+        <h2 class="stardew-font text-center mb-2" style="color: #634d31;">Plants</h2>
+
+        <div class="d-flex flex-wrap justify-content-center gap-4">
+            <div class="text-center">
+                <p class="stardew-font mt-2 mb-0" style="font-size: 1.3rem; color: #634d31;">Cactus</p>
+                <div style="width: 110px; height: 110px; background: #ffd3ac; border: 4px solid #bf7858; box-shadow: 4px 4px 0px #b8ada1; display: flex; align-items: center; justify-content: center;">
+                  <img src="{% static 'img/cactus.png' %}" alt="Cactus" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div style="width: 110px; height: 8px; background: #2e3c69; margin-top: 14px;">
+                  <div style="width: 42%; height: 100%; background: #7bae7f;"></div>
+                </div>
+                <p class="stardew-font mt-2 mb-0" style="font-size: 1.3rem; color: #634d31;">Level 3</p>
+            </div>
+
+            <div class="text-center">
+                <p class="stardew-font mt-2 mb-0" style="font-size: 1.3rem; color: #634d31;">Lavender</p>
+                <div style="width: 110px; height: 110px; background: #ffd3ac; border: 4px solid #bf7858; box-shadow: 4px 4px 0px #b8ada1; display: flex; align-items: center; justify-content: center;">
+                  <img src="{% static 'img/lavender.png' %}" alt="Lavender" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div style="width: 110px; height: 8px; background: #2e3c69; margin-top: 14px;">
+                  <div style="width: 21%; height: 100%; background: #7bae7f;"></div>
+                </div>
+                <p class="stardew-font mt-2 mb-0" style="font-size: 1.3rem; color: #634d31;">Level 1</p>
+            </div>
+
+            <div class="text-center">
+              <p class="stardew-font mt-2 mb-0" style="font-size: 1.3rem; color: #634d31;">Sunflower</p>
+              <div style="width: 110px; height: 110px; background: #ffd3ac; border: 4px solid #bf7858; box-shadow: 4px 4px 0px #b8ada1; display: flex; align-items: center; justify-content: center;">
+                <img src="{% static 'img/sunflower.png' %}" alt="Sunflower" style="width: 100%; height: 100%; object-fit: contain;">
+              </div>
+              <div style="width: 110px; height: 8px; background: #2e3c69; margin-top: 14px;">
+                <div style="width: 67%; height: 100%; background: #7bae7f;"></div>
+              </div>
+              <p class="stardew-font mt-2 mb-0" style="font-size: 1.3rem; color: #634d31;">Level 2</p>
+            </div>
+        </div>
+    </div>
+</div>
+       
+{% endblock content %}
