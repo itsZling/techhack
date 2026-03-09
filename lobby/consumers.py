@@ -90,10 +90,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             game_state[self.lobby_name] = {
                 'current_round': 1,
                 'total_rounds': int(data.get('rounds', 5)),
-                
-                # BUG FIX: Change this from 'detail' to 'playlist_url'
-                'playlist_url': playlist_url, 
-                
+                'playlist_url': playlist_url,
                 'current_answer': song_data['name'],
                 'current_artist': song_data['artist'], 
                 'current_video_id': song_data['video_id'],
@@ -112,6 +109,10 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     'detail': detail
                 }
             )
+            
+        # --- Handle Host Starting First Round ---
+        elif data.get('type') == 'start_first_round':
+            await self.channel_layer.group_send(self.lobby_group_name, {'type': 'start_first_round'})
             
         elif data.get('type') == 'chat_message':
             await self.channel_layer.group_send(
@@ -201,6 +202,9 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             self.lobby_group_name,
             {'type': 'player_list_update', 'players': players}
         )
+        
+    async def start_first_round(self, event):
+        await self.send(text_data=json.dumps({'type': 'start_first_round'}))
         
     async def round_reveal(self, event):
         await self.send(text_data=json.dumps({'type': 'round_reveal'}))

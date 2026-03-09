@@ -5,6 +5,14 @@
 <div class="d-flex align-items-center justify-content-center py-4" style="min-height: calc(100vh - 160px);">
     <div class="container position-relative">
 
+        <div id="ready-overlay" class="position-fixed w-100 h-100 top-0 start-0 d-flex flex-column justify-content-center align-items-center" style="background-color: rgba(99, 77, 49, 0.98); z-index: 9999;">
+            <h1 class="stardew-font text-white mb-4" style="font-size: 5rem; text-shadow: 4px 4px 0px #000;">Ready to Play?</h1>
+            <p class="stardew-font text-white mb-5" style="font-size: 2.2rem;">Browsers require a click to unlock the music.</p>
+            <button id="host-start-btn" class="btn stardew-font d-none" style="background-color: #558b2f; color: white; border: 4px solid #33691e; padding: 15px 40px; font-size: 2.5rem; text-shadow: 2px 2px 0px #33691e; box-shadow: 4px 4px 0px rgba(0,0,0,0.5);">HOST: START GAME</button>
+            <button id="player-ready-btn" class="btn stardew-font d-none" style="background-color: #bf7858; color: white; border: 4px solid #634d31; padding: 15px 40px; font-size: 2.5rem; text-shadow: 2px 2px 0px #634d31; box-shadow: 4px 4px 0px rgba(0,0,0,0.5);">CLICK TO READY UP</button>
+            <p id="waiting-text" class="stardew-font text-white mt-4 d-none" style="font-size: 1.8rem;">Waiting for host to start...</p>
+        </div>
+
         <div class="row align-items-end mb-4">
             <div class="col-4"></div>
             <div class="col-4 text-center">
@@ -36,7 +44,7 @@
                 <div class="lobby-main-panel p-4 shadow-lg w-100">
                     
                     <div class="mb-4 mt-2" style="overflow: hidden; border: 4px solid #634d31; border-radius: 8px;">
-                        <div id="song-info-container" class="mb-3 song-reveal-hidden">
+                        <div id="album-art-container" class="mb-3 song-reveal-hidden">
                         {% if song_cover %}
                             <img src="{{ song_cover }}" 
                                  id="album-art"
@@ -54,7 +62,7 @@
 
                     {% if song_name %}
                         <div class="mb-3">
-                            <div id="song-info-container" class="mb-3 song-reveal-hidden">
+                            <div id="song-text-container" class="mb-3 song-reveal-hidden">
                                 <h4 id="song-name-display" class="stardew-font mb-0" style="color: #634d31; font-size: 1.8rem;">
                                     🎵 {{ song_name }}
                                 </h4>
@@ -87,6 +95,42 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
+    document.getElementById('host-start-btn').addEventListener('click', () => {
+        if (player && player.getPlayerState) player.playVideo(); // Unlocks Host Audio
+        gameSocket.send(JSON.stringify({'type': 'start_first_round'})); // Tells server to start!
+    });
+
+    document.getElementById('player-ready-btn').addEventListener('click', () => {
+        if (player && player.getPlayerState) player.playVideo(); // Unlocks Player Audio
+        document.getElementById('player-ready-btn').classList.add('d-none');
+        document.getElementById('waiting-text').classList.remove('d-none');
+    });
+
+    // We moved the countdown into a reusable function!
+    function startPrepPhase() {
+        let prepTime = 3;
+        const display = document.getElementById('timer-display');
+        display.innerText = "READY: " + prepTime;
+
+        clearInterval(timerInterval);
+        clearInterval(prepInterval);
+        clearInterval(revealInterval);
+
+        prepInterval = setInterval(() => {
+            prepTime--;
+            if (prepTime > 0) {
+                display.innerText = "READY: " + prepTime;
+            } else {
+                clearInterval(prepInterval);
+                guessInput.disabled = false;
+                guessInput.placeholder = "Start typing...";
+
+                if (player && player.playVideo) player.playVideo();
+                startTimer();
+            }
+        }, 1000);
+    }
+
     let player;
     let timerInterval;
     let prepInterval;
@@ -101,13 +145,29 @@
     const gameSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/lobby/' + lobbyId + '/');
 
     function revealSong() {
-        const container = document.getElementById('song-info-container');
-        if (container) container.classList.replace('song-reveal-hidden', 'song-reveal-visible');
+        const art = document.getElementById('album-art-container');
+        const text = document.getElementById('song-text-container');
+        
+        if (art) { art.style.filter = "none"; art.style.opacity = "1"; }
+        if (text) { 
+            text.style.filter = "none"; 
+            text.style.opacity = "1"; 
+            text.style.userSelect = "auto";       // <-- Restores selection
+            text.style.pointerEvents = "auto"; 
+        }
     }
 
     function hideSong() {
-        const container = document.getElementById('song-info-container');
-        if (container) container.classList.replace('song-reveal-visible', 'song-reveal-hidden');
+        const art = document.getElementById('album-art-container');
+        const text = document.getElementById('song-text-container');
+        
+        if (art) { art.style.filter = "blur(15px)"; art.style.opacity = "0.7"; }
+        if (text) { 
+            text.style.filter = "blur(10px)"; 
+            text.style.opacity = "0"; 
+            text.style.userSelect = "none";       // <-- Prevents highlighting!
+            text.style.pointerEvents = "none";    // <-- Prevents right-clicking/inspecting!
+        }
     }
 
     function startTimer() {
@@ -169,16 +229,37 @@
     gameSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
 
-        // --- 1. Leaderboard & Points ---
+        // --- 1. Leaderboard and Points ---
         if (data.type === 'player_list' || data.type === 'points_update') {
             const scores = data.leaderboard || data.players.reduce((acc, p) => ({...acc, [p]: 0}), {});
             updateLeaderboardUI(scores, data.players);
 
+            if (data.type === 'player_list') {
+                const overlay = document.getElementById('ready-overlay');
+                if (overlay && overlay.style.display !== 'none') {
+                    const isHost = (currentPlayers.length > 0 && currentUsername === currentPlayers[0]);
+                    if (isHost) {
+                        document.getElementById('host-start-btn').classList.remove('d-none');
+                        document.getElementById('player-ready-btn').classList.add('d-none');
+                    } else if (document.getElementById('waiting-text').classList.contains('d-none')) {
+                        document.getElementById('player-ready-btn').classList.remove('d-none');
+                    }
+                }
+            }
+
+            
             if (data.type === 'points_update' && data.user === currentUsername) {
                 guessInput.placeholder = "Correct! +" + data.points + " pts";
                 guessInput.disabled = true;
                 revealSong();
             }
+
+        }
+
+        // --- 1.5 First Round Signal ---
+        if (data.type === 'start_first_round') {
+            document.getElementById('ready-overlay').style.display = 'none';
+            startPrepPhase();
         }
 
         // --- 2. Incorrect Guess ---
@@ -190,6 +271,29 @@
             setTimeout(() => {
                 guessInput.classList.remove('shake-error');
             }, 500);
+        }
+
+        // --- 3. Load Round Data
+        if (data.type === 'load_new_round' || data.type === 'initial_song_data') {
+            hideSong();
+            guessInput.disabled = true;
+            guessInput.placeholder = "Loading song...";
+            
+            const song = data.song_data;
+            document.getElementById('round-text').innerText = "Round " + (data.round_number || 1) + " / {{ rounds }}";
+            document.getElementById('album-art').src = song.cover_art;
+            document.getElementById('song-name-display').innerText = "🎵 " + song.name;
+            document.getElementById('song-artist-display').innerText = "by " + song.artist;
+
+            currentVideoId = song.video_id;
+            if (player && player.loadVideoById) {
+                player.loadVideoById(song.video_id);
+            }
+
+            // ONLY start the countdown immediately if it's round 2+
+            if (data.type === 'load_new_round') {
+                startPrepPhase();
+            }
         }
 
         // --- 3. 5-Second Reveal Phase ---
@@ -222,48 +326,6 @@
             }, 1000);
         }
 
-        // --- 4. 3-Second Prep Phase & Load Round ---
-        if (data.type === 'load_new_round' || data.type === 'initial_song_data') {
-            hideSong();
-            guessInput.disabled = true;
-            guessInput.placeholder = "Loading song...";
-            
-            const song = data.song_data;
-            document.getElementById('round-text').innerText = "Round " + (data.round_number || 1) + " / {{ rounds }}";
-            document.getElementById('album-art').src = song.cover_art;
-            document.getElementById('song-name-display').innerText = "七 " + song.name;
-            document.getElementById('song-artist-display').innerText = "by " + song.artist;
-
-            currentVideoId = song.video_id;
-            if (player && player.loadVideoById) {
-                player.loadVideoById(song.video_id);
-            }
-
-            let prepTime = 3;
-            const display = document.getElementById('timer-display');
-            display.innerText = "READY: " + prepTime;
-
-            clearInterval(timerInterval);
-            clearInterval(prepInterval);
-            clearInterval(revealInterval);
-
-            prepInterval = setInterval(() => {
-                prepTime--;
-                if (prepTime > 0) {
-                    display.innerText = "READY: " + prepTime;
-                } else {
-                    clearInterval(prepInterval);
-                    
-                    guessInput.disabled = false;
-                    guessInput.placeholder = "Start typing...";
-
-                    if (player && player.playVideo) {
-                        player.playVideo();
-                    }
-                    startTimer();
-                }
-            }, 1000);
-        }
         
         // --- 5. Game Over ---
         if (data.type === 'game_over') {
